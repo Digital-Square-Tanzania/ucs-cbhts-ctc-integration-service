@@ -21,6 +21,15 @@ export OPENSRP_DB_USER=<db_user>
 export OPENSRP_DB_PASSWORD=<db_password>
 ```
 
+Or use a `.env` file:
+
+```bash
+cp .env-sample .env
+set -a
+source .env
+set +a
+```
+
 Then build and run:
 
 ```bash
@@ -85,6 +94,16 @@ docker run -d \
   -e OPENSRP_DB_SCHEMA=public \
   -e OPENSRP_DB_USER=<db_user> \
   -e OPENSRP_DB_PASSWORD=<db_password> \
+  ucs-cbhts-ctc-integration-service
+```
+
+Or use `.env` directly with Docker:
+
+```bash
+docker run -d \
+  --name ucs-cbhts-ctc-integration-service \
+  -p 127.0.0.1:8080:8080 \
+  --env-file .env \
   ucs-cbhts-ctc-integration-service
 ```
 
