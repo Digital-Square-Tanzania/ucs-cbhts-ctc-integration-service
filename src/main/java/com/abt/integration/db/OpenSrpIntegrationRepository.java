@@ -54,7 +54,7 @@ public class OpenSrpIntegrationRepository {
     public List<ServiceRow> findServices(Connection connection, IntegrationRequest request) throws SQLException {
         String sql = "SELECT " +
                 "s.event_id, s.base_entity_id, s.hts_visit_group, s.visit_date, s.hts_visit_date, s.date_created, " +
-                "s.provider_id, s.hts_testing_approach, s.hts_visit_type, s.hts_has_the_client_recently_tested_with_hivst, " +
+                "tm.identifier AS provider_id, s.hts_testing_approach, s.hts_visit_type, s.hts_has_the_client_recently_tested_with_hivst, " +
                 "s.hts_previous_hivst_client_type, s.hts_previous_hivst_test_type, s.hts_previous_hivst_test_results, s.hts_client_type, s.hts_testing_point, " +
                 "s.hts_type_of_counselling_provided, s.hts_clients_tb_screening_outcome, s.hts_has_post_test_counselling_been_provided, " +
                 "s.hts_hiv_results_disclosure, s.hts_were_condoms_distributed, s.hts_number_of_male_condoms_provided, " +
@@ -62,7 +62,7 @@ public class OpenSrpIntegrationRepository {
                 "c.unique_id, c.first_name, c.middle_name, c.last_name, c.phone_number, c.national_id, c.voter_id, c.driver_license, " +
                 "c.passport, c.sex, c.birth_date, c.marital_status, c.preg_1yr, " +
                 "l.hfr_code, l.region, l.district, l.district_council, l.ward, l.health_facility, l.village, " +
-                "COALESCE(tm.name, s.provider_id) AS counsellor_name " +
+                "COALESCE(tm.name, tm.identifier) AS counsellor_name " +
                 "FROM " + schema + ".cbhts_services s " +
                 "JOIN " + schema + ".team_members tm ON tm.identifier = s.provider_id " +
                 "JOIN " + schema + ".tanzania_locations l ON l.location_uuid = tm.location_uuid " +

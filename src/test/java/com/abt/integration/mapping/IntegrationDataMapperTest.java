@@ -94,6 +94,9 @@ class IntegrationDataMapperTest {
 
         assertEquals("CBHTS", mapped.get("htcApproach"));
         assertEquals("2025-12-20", mapped.get("visitDate"));
+        Map<String, Object> counsellor = (Map<String, Object>) mapped.get("counsellor");
+        assertEquals("provider-1", counsellor.get("counsellorID"));
+        assertEquals("John Doe", counsellor.get("counsellorName"));
 
         Map<String, Object> demographics = (Map<String, Object>) mapped.get("demographics");
         assertEquals("SINGLE", demographics.get("maritalStatusCode"));
@@ -106,7 +109,7 @@ class IntegrationDataMapperTest {
         assertTrue((Boolean) clientClassification.get("eligibleForTesting"));
 
         Map<String, Object> currentTesting = (Map<String, Object>) mapped.get("currentTesting");
-        assertEquals("COMMUNITY_TESTING_SERVICE", currentTesting.get("referredFromCode"));
+        assertTrue(!currentTesting.containsKey("referredFromCode"));
         assertEquals("INDIVIDUAL", currentTesting.get("counsellingTypeCode"));
         assertEquals("TB_PRESUMPTIVE", currentTesting.get("tbScreeningDetails"));
 
@@ -127,9 +130,10 @@ class IntegrationDataMapperTest {
         Map<String, Object> preventionServices = (Map<String, Object>) mapped.get("preventionServices");
         assertTrue((Boolean) preventionServices.get("condomGiven"));
 
-        Map<String, Object> referralAndOutcome = (Map<String, Object>) mapped.get("referralAndOutcome");
-        assertEquals("PREP_SERVICE", referralAndOutcome.get("referredToCode"));
-        assertEquals("13211-1", referralAndOutcome.get("toFacility"));
+        List<Map<String, Object>> referralAndOutcome = (List<Map<String, Object>>) mapped.get("referralAndOutcome");
+        assertEquals(1, referralAndOutcome.size());
+        assertEquals("PREP_SERVICE", referralAndOutcome.get(0).get("referredToCode"));
+        assertEquals("13211-1", referralAndOutcome.get(0).get("toFacility"));
     }
 
     @SuppressWarnings("unchecked")

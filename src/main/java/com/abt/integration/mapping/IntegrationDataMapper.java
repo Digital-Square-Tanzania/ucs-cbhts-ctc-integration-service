@@ -80,25 +80,6 @@ public class IntegrationDataMapper {
             "self_test_blood", "SELF_TEST_BLOOD"
     );
 
-    private static final Map<String, String> REFERRED_FROM_ALIASES = aliases(
-            "cbhts", "COMMUNITY_TESTING_SERVICE",
-            "citc", "VOLUNTARY_HIV_TESTING_CITC",
-            "pitc", "OUTPATIENT_DEPARTMENT",
-            "tb_clinic", "TB_OPD_CLINIC",
-            "sti_clinic", "STI_CLINIC",
-            "opd", "OUTPATIENT_DEPARTMENT",
-            "ipd", "INPATIENT_WARD",
-            "blood_donation", "BLOOD_TRANSFUSION_SERVICE",
-            "family_planning", "FAMILY_PLANNING_CLINIC",
-            "ctc", "CTC_CLINIC",
-            "vmmc", "VMMC_SERVICE",
-            "outreach", "OUTREACH_SERVICE",
-            "rch", "RCH_CLINIC",
-            "laboratory", "LABORATORY",
-            "cervical_cancer_screening", "CERVICAL_CANCER_SCREENING",
-            "other", "OTHER"
-    );
-
     private static final Map<String, String> COUNSELLING_TYPE_ALIASES = aliases(
             "individual", "INDIVIDUAL",
             "couple", "COUPLE",
@@ -176,7 +157,7 @@ public class IntegrationDataMapper {
         Map<String, Object> item = new LinkedHashMap<>();
         item.put("htcApproach", mapTestingApproach(serviceRow.htsTestingApproach()));
         item.put("visitDate", normalizeDate(firstNonBlank(serviceRow.htsVisitDate(), serviceRow.visitDate())));
-        item.put("counsellorName", firstNonBlank(serviceRow.counsellorName(), serviceRow.providerId()));
+        item.put("counsellor", mapCounsellor(serviceRow));
         item.put("clientCode", firstNonBlank(serviceRow.uniqueId(), serviceRow.baseEntityId()));
         item.put("cellPhoneNumber", normalizePhoneNumber(serviceRow.phoneNumber()));
 
@@ -195,6 +176,13 @@ public class IntegrationDataMapper {
         item.put("createdAt", toEpochSeconds(serviceRow.dateCreated()));
 
         return item;
+    }
+
+    private Map<String, Object> mapCounsellor(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
+        Map<String, Object> counsellor = new LinkedHashMap<>();
+        counsellor.put("counsellorID", serviceRow.providerId());
+        counsellor.put("counsellorName", firstNonBlank(serviceRow.counsellorName(), serviceRow.providerId()));
+        return counsellor;
     }
 
     private String mapTestingApproach(String rawApproach) {
@@ -341,9 +329,6 @@ public class IntegrationDataMapper {
 
         currentTesting.put("testingType", catalog.mapToIntegrationValue("TestingType", testingTypeSource, TESTING_TYPE_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
 
-        String referredFromSource = firstNonBlank(serviceRow.htsTestingPoint(), serviceRow.htsTestingApproach());
-        currentTesting.put("referredFromCode", catalog.mapToIntegrationValue("ReferredFromCode", referredFromSource, REFERRED_FROM_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
-
         currentTesting.put("counsellingTypeCode", catalog.mapToIntegrationValue(
                 "CounsellingTypeCode",
                 serviceRow.htsTypeOfCounsellingProvided(),
@@ -423,8 +408,8 @@ public class IntegrationDataMapper {
         return preventionServices;
     }
 
-    private Map<String, Object> mapReferralAndOutcome(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
-        Map<String, Object> referralAndOutcome = new LinkedHashMap<>();
+    private List<Map<String, Object>> mapReferralAndOutcome(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
+        List<Map<String, Object>> referralAndOutcome = new ArrayList<>();
 
         String referredToCode = DEFAULT_NOT_APPLICABLE_VALUE;
         for (String preventiveService : splitValues(serviceRow.htsPreventiveServices())) {
@@ -438,8 +423,10 @@ public class IntegrationDataMapper {
             referredToCode = DEFAULT_NOT_APPLICABLE_VALUE;
         }
 
-        referralAndOutcome.put("referredToCode", referredToCode);
-        referralAndOutcome.put("toFacility", serviceRow.hfrCode());
+        Map<String, Object> referralItem = new LinkedHashMap<>();
+        referralItem.put("referredToCode", referredToCode);
+        referralItem.put("toFacility", serviceRow.hfrCode());
+        referralAndOutcome.add(referralItem);
 
         return referralAndOutcome;
     }
