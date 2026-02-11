@@ -2,7 +2,7 @@ package com.abt.util;
 
 
 import akka.http.javadsl.model.DateTime;
-import com.abt.UcsLabIntegrationRoutes;
+import com.abt.UcsCbhtsCtsIntegrationRoutes;
 import com.abt.domain.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -117,7 +117,7 @@ public class OpenSrpService {
                     Arrays.asList(new Object[]{labResult.getAuthorisedDateTime()}), null, null,
                     "authorized_date_time"));
         } catch (Exception e) {
-            LoggerFactory.getLogger(UcsLabIntegrationRoutes.class).error(e.getMessage(), e);
+            LoggerFactory.getLogger(UcsCbhtsCtsIntegrationRoutes.class).error(e.getMessage(), e);
         }
 
 
@@ -141,7 +141,7 @@ public class OpenSrpService {
                     Arrays.asList(new Object[]{labResult.getAnalysisDateTime()}), null, null,
                     "tested_date_time"));
         } catch (Exception e) {
-            LoggerFactory.getLogger(UcsLabIntegrationRoutes.class).error(e.getMessage(), e);
+            LoggerFactory.getLogger(UcsCbhtsCtsIntegrationRoutes.class).error(e.getMessage(), e);
         }
 
         labResultEvent.addObs(new Obs("concept", "text",
@@ -260,7 +260,7 @@ public class OpenSrpService {
                     Arrays.asList(new Object[]{rejectionTime}), null, null,
                     "rejection_time"));
         } catch (Exception e) {
-            LoggerFactory.getLogger(UcsLabIntegrationRoutes.class).error(e.getMessage(), e);
+            LoggerFactory.getLogger(UcsCbhtsCtsIntegrationRoutes.class).error(e.getMessage(), e);
         }
 
         labRejectionEvent.addObs(new Obs("concept", "text",
@@ -362,7 +362,7 @@ public class OpenSrpService {
 
             conn.disconnect();
         } catch (Exception e) {
-            LoggerFactory.getLogger(UcsLabIntegrationRoutes.class).error(e.getMessage(), e);
+            LoggerFactory.getLogger(UcsCbhtsCtsIntegrationRoutes.class).error(e.getMessage(), e);
             response = "Error: " + e.getMessage();
 
         }

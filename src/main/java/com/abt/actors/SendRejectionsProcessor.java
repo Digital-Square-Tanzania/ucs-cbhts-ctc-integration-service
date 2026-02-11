@@ -1,6 +1,6 @@
 package com.abt.actors;
 
-import com.abt.UcsLabIntegrationRoutes;
+import com.abt.UcsCbhtsCtsIntegrationRoutes;
 import com.abt.domain.Event;
 import com.abt.domain.EventRequest;
 import com.abt.domain.LabRejection;
@@ -21,7 +21,7 @@ public class SendRejectionsProcessor {
             events.add(rejectionEvent);
             return sendDataToDestination(new EventRequest(events), url, username, password);
         } catch (Exception e) {
-            LoggerFactory.getLogger(UcsLabIntegrationRoutes.class).error(e.getMessage(), e);
+            LoggerFactory.getLogger(UcsCbhtsCtsIntegrationRoutes.class).error(e.getMessage(), e);
             return "Internal Error while processing the payload";
         }
     }

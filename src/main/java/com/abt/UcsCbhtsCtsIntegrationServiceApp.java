@@ -11,7 +11,7 @@ import akka.http.javadsl.server.Route;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletionStage;
 
-public class UcsLabIntegrationServiceApp {
+public class UcsCbhtsCtsIntegrationServiceApp {
     static void startHttpServer(Route route, ActorSystem<?> system) {
         CompletionStage<ServerBinding> futureBinding =
                 Http.get(system)
@@ -34,11 +34,11 @@ public class UcsLabIntegrationServiceApp {
 
     public static void main(String[] args) {
         Behavior<NotUsed> rootBehavior = Behaviors.setup(context -> {
-            UcsLabIntegrationRoutes routes = new UcsLabIntegrationRoutes(context.getSystem());
+            UcsCbhtsCtsIntegrationRoutes routes = new UcsCbhtsCtsIntegrationRoutes(context.getSystem());
             startHttpServer(routes.integrationRoutes(), context.getSystem());
             return Behaviors.empty();
         });
 
-        ActorSystem.create(rootBehavior, "UcsLabIntegrationServiceServer");
+        ActorSystem.create(rootBehavior, "UcsCbhtsCtsIntegrationServiceServer");
     }
 }

@@ -12,14 +12,14 @@ import com.abt.domain.LabRejection;
 import com.abt.domain.LabResult;
 
 //#UCSLab-registry-actor
-public class UcsLabIntegrationRegistry extends AbstractBehavior<UcsLabIntegrationRegistry.Command> {
+public class UcsCbhtsCtsIntegrationRegistry extends AbstractBehavior<UcsCbhtsCtsIntegrationRegistry.Command> {
 
-    private UcsLabIntegrationRegistry(ActorContext<Command> context) {
+    private UcsCbhtsCtsIntegrationRegistry(ActorContext<Command> context) {
         super(context);
     }
 
     public static Behavior<Command> create() {
-        return Behaviors.setup(UcsLabIntegrationRegistry::new);
+        return Behaviors.setup(UcsCbhtsCtsIntegrationRegistry::new);
     }
 
     @Override

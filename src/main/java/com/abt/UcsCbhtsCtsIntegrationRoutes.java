@@ -24,16 +24,16 @@ import static akka.http.javadsl.server.Directives.path;
 import static akka.http.javadsl.server.Directives.pathPrefix;
 import static akka.http.javadsl.server.Directives.post;
 
-public class UcsLabIntegrationRoutes {
-    private static final Logger log = LoggerFactory.getLogger(UcsLabIntegrationRoutes.class);
+public class UcsCbhtsCtsIntegrationRoutes {
+    private static final Logger log = LoggerFactory.getLogger(UcsCbhtsCtsIntegrationRoutes.class);
 
     private final IntegrationEndpointService integrationEndpointService;
 
-    public UcsLabIntegrationRoutes(ActorSystem<?> system) {
+    public UcsCbhtsCtsIntegrationRoutes(ActorSystem<?> system) {
         this(new OpenSrpIntegrationService());
     }
 
-    public UcsLabIntegrationRoutes(IntegrationEndpointService integrationEndpointService) {
+    public UcsCbhtsCtsIntegrationRoutes(IntegrationEndpointService integrationEndpointService) {
         this.integrationEndpointService = integrationEndpointService;
     }
 
