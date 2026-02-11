@@ -1,0 +1,259 @@
+{
+  "count": "1",
+  "encounter_type": "HTS First HIV Test",
+  "entity_id": "",
+  "relational_id": "",
+  "validate_on_submit": true,
+  "show_errors_on_submit": true,
+  "metadata": {
+    "start": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "start",
+      "openmrs_entity_id": "163137AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "end": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "end",
+      "openmrs_entity_id": "163138AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "today": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "encounter",
+      "openmrs_entity_id": "encounter_date"
+    },
+    "deviceid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "deviceid",
+      "openmrs_entity_id": "163149AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "subscriberid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "subscriberid",
+      "openmrs_entity_id": "163150AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "simserial": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "simserial",
+      "openmrs_entity_id": "163151AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "phonenumber": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "phonenumber",
+      "openmrs_entity_id": "163152AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "encounter_location": "",
+    "look_up": {
+      "entity_id": "",
+      "value": ""
+    }
+  },
+  "global": {},
+  "step1": {
+    "title": "HIV Testing",
+    "fields": [
+      {
+        "key": "type_of_test_kit_used",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_test_kit_used",
+        "type": "native_radio",
+        "label": "Type of test used",
+        "options": [
+          {
+            "key": "bioline",
+            "text": "Bioline",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "bioline"
+          },
+          {
+            "key": "hiv_syphilis_dual",
+            "text": "HIV/Syphilis Dual",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "hiv_syphilis_dual"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "test_kit_batch_number",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "test_kit_batch_number",
+        "type": "edit_text",
+        "label": "Kit batch number",
+        "hint": "Specify kit batch number",
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "test_kit_expire_date",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "test_kit_expire_date",
+        "type": "date_picker",
+        "min_date": "today",
+        "max_date": "today+5y",
+        "expanded": false,
+        "hint": "Select kit expire date",
+        "v_required": {
+          "value": "true",
+          "err": "Required"
+        }
+      },
+      {
+        "key": "test_result",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "test_result",
+        "type": "native_radio",
+        "label": "First HIV Test result",
+        "options": [
+          {
+            "key": "non_reactive",
+            "text": "Non-Reactive",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "non_reactive"
+          },
+          {
+            "key": "reactive",
+            "text": "Reactive",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "reactive"
+          },
+          {
+            "key": "invalid",
+            "text": "Invalid",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "invalid"
+          },
+          {
+            "key": "wastage",
+            "text": "Wastage",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "wastage"
+          }
+        ]
+      },
+      {
+        "key": "prompt_for_hiv_negative",
+        "type": "toaster_notes",
+        "text": "The client is HIV Negative",
+        "openmrs_entity_id": "prompt_for_hiv_negative",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": "",
+        "toaster_type": "positive",
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_first_hiv_test_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "prompt_for_conducting_dna_pcr",
+        "type": "toaster_notes",
+        "text": "Collect sample for DNA-PCR",
+        "openmrs_entity_id": "prompt_for_conducting_dna_pcr",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": "",
+        "toaster_type": "problem",
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_first_hiv_test_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "prompt_repeat_the_test_using_another_test_kit",
+        "type": "toaster_notes",
+        "text": "Repeat the HIV Test",
+        "openmrs_entity_id": "prompt_repeat_the_test_using_another_test_kit",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": "",
+        "toaster_type": "info",
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_first_hiv_test_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "syphilis_test_results",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "syphilis_test_results",
+        "type": "native_radio",
+        "label": "Syphilis Test result ",
+        "options": [
+          {
+            "key": "negative",
+            "text": "Negative",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "negative"
+          },
+          {
+            "key": "positive",
+            "text": "Positive",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "positive"
+          }
+        ],
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_first_hiv_test_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "prompt_for_positive_syphilis",
+        "type": "toaster_notes",
+        "text": "Refer or Treat for Syphilis",
+        "openmrs_entity_id": "prompt_for_positive_syphilis",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": "",
+        "toaster_type": "problem",
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_first_hiv_test_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "test_type",
+        "type": "hidden",
+        "openmrs_entity_id": "test_type",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": "",
+        "value": "First HIV Test"
+      },
+      {
+        "key": "hts_first_hiv_test_completion_status",
+        "type": "hidden",
+        "openmrs_entity_id": "hts_first_hiv_test_completion_status",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": ""
+      }
+
+    ]
+  }
+}

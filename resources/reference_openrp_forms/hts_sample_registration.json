@@ -1,0 +1,213 @@
+{
+  "count": "1",
+  "encounter_type": "Sample Testing",
+  "entity_id": "",
+  "metadata": {
+    "start": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "start",
+      "openmrs_entity_id": "163137AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "end": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "end",
+      "openmrs_entity_id": "163138AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "deviceid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "deviceid",
+      "openmrs_entity_id": "163149AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "subscriberid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "subscriberid",
+      "openmrs_entity_id": "163150AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "simserial": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "simserial",
+      "openmrs_entity_id": "163151AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "phonenumber": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "phonenumber",
+      "openmrs_entity_id": "163152AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "encounter_location": ""
+  },
+  "global": {},
+  "step1": {
+    "title": "Sample Registration",
+    "fields": [
+      {
+        "key": "sample_type",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "sample_type",
+        "label": "Sample Type",
+        "text_color": "#000000",
+        "type": "native_radio",
+        "options": [
+          {
+            "key": "iqc",
+            "text": "IQC",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "iqc"
+          },
+          {
+            "key": "eqa",
+            "text": "EQA",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "eqa"
+          },
+          {
+            "key": "training",
+            "text": "Training",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "training"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a sample type"
+        }
+      },
+      {
+        "key": "iqc_type",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "iqc_type",
+        "label": "IQC Type",
+        "text_color": "#000000",
+        "type": "native_radio",
+        "options": [
+          {
+            "key": "negative_control",
+            "text": "Negative Control",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "negative_control"
+          },
+          {
+            "key": "positive_control",
+            "text": "Positive Control",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "positive_control"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select an IQC type"
+        },
+        "relevance": {
+          "step1:sample_type": {
+            "type": "string",
+            "ex": "equalTo(., \"iqc\")"
+          }
+        }
+      },
+      {
+        "key": "hts_pitc_testing_point",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_pitc_testing_point",
+        "type": "native_radio",
+        "label": "Testing Point",
+        "options": [
+          {
+            "key": "sti_clinic",
+            "text": "STI Clinic",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "sti_clinic"
+          },
+          {
+            "key": "tb_clinic",
+            "text": "TB Clinic",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "tb_clinic"
+          },
+          {
+            "key": "ipd",
+            "text": "IPD",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "ipd"
+          },
+          {
+            "key": "opd",
+            "text": "OPD",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "opd"
+          },
+          {
+            "key": "blood_donation",
+            "text": "Blood Donation",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "blood_donation"
+          },
+          {
+            "key": "family_planning",
+            "text": "Family Planning",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "family_planning"
+          },
+          {
+            "key": "ctc",
+            "text": "CTC",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "ctc"
+          },
+          {
+            "key": "vmmc",
+            "text": "VMMC",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "vmmc"
+          },
+          {
+            "key": "outreach",
+            "text": "Outreach",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "outreach"
+          },
+          {
+            "key": "rch",
+            "text": "RCH",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "rch"
+          },
+          {
+            "key": "laboratory",
+            "text": "Laboratory",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "laboratory"
+          },
+          {
+            "key": "cervical_cancer_screening",
+            "text": "Cervical Cancer Screening",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "cervical_cancer_screening"
+          },
+          {
+            "key": "other",
+            "text": "Others (Specify)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "other"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      }
+    ]
+  }
+}

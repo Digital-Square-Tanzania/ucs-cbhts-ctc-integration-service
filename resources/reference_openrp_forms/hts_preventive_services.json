@@ -1,0 +1,295 @@
+{
+  "count": "1",
+  "encounter_type": "preventive_services",
+  "entity_id": "",
+  "relational_id": "",
+  "validate_on_submit": true,
+  "show_errors_on_submit": false,
+  "metadata": {
+    "start": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "start",
+      "openmrs_entity_id": "163137AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "end": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "end",
+      "openmrs_entity_id": "163138AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "today": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "encounter",
+      "openmrs_entity_id": "encounter_date"
+    },
+    "deviceid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "deviceid",
+      "openmrs_entity_id": "163149AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "subscriberid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "subscriberid",
+      "openmrs_entity_id": "163150AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "simserial": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "simserial",
+      "openmrs_entity_id": "163151AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "phonenumber": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "phonenumber",
+      "openmrs_entity_id": "163152AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "encounter_location": "",
+    "look_up": {
+      "entity_id": "",
+      "value": ""
+    }
+  },
+  "global": {},
+  "step1": {
+    "title": "Preventive Services",
+    "fields": [
+      {
+        "key": "hts_preventive_services",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_preventive_services",
+        "type": "check_box",
+        "combine_checkbox_option_values": "true",
+        "label": "Referral for preventive services",
+        "label_text_style": "bold",
+        "text_color": "#000000",
+        "exclusive": [
+          "none"
+        ],
+        "options": [
+          {
+            "key": "tuberculosis_clinic",
+            "text": "Tuberculosis Clinic",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "tuberculosis_clinic"
+          },
+          {
+            "key": "sputum_testing_laboratory",
+            "text": "Sputum Testing Laboratory",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "sputum_testing_laboratory"
+          },
+          {
+            "key": "prevention_of_mother_to_child_transmission",
+            "text": "Prevention of Mother to Child Transmission",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "prevention_of_mother_to_child_transmission"
+          },
+          {
+            "key": "family_planning",
+            "text": "Family Planning",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "family_planning"
+          },
+          {
+            "key": "sexual_transmitted_infections_clinic",
+            "text": "Sexual Transmitted Infections Clinic (STIs)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "sexual_transmitted_infections_clinic"
+          },
+          {
+            "key": "care_and_treatment_clinic",
+            "text": "Care and Treatment Clinic",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "care_and_treatment_clinic"
+          },
+          {
+            "key": "voluntary_medical_male_circumcision_vmmc",
+            "text": "Voluntay Medical Male Circumcision (VMMC)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "voluntary_medical_male_circumcision_vmmc"
+          },
+          {
+            "key": "prep_services",
+            "text": "PrEP services",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "prep_services"
+          },
+          {
+            "key": "gbv_services",
+            "text": "Gender Based Violence Services (GBV)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "gbv_services"
+          },
+          {
+            "key": "pep_services",
+            "text": "PEP services",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "pep_services"
+          },
+          {
+            "key": "adolescent_and_youth_people_friendly_services",
+            "text": "Adolescent and Youth People Friendly Services",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "adolescent_and_youth_people_friendly_services"
+          },
+          {
+            "key": "others",
+            "text": "Others (Specify)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "others"
+          },
+          {
+            "key": "none",
+            "text": "None",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "none"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select the client visit type"
+        }
+      },
+      {
+        "key": "hts_were_condoms_distributed",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_were_condoms_distributed",
+        "type": "native_radio",
+        "label": "Were condoms distributed?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_condom_distribution",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_condom_distribution",
+        "type": "check_box",
+        "label": "Condom distribution",
+        "options": [
+          {
+            "key": "male",
+            "text": "Male",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "male"
+          },
+          {
+            "key": "female",
+            "text": "Female",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "female"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select condom distribution"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_preventive_services_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "hts_number_of_male_condoms_provided",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_number_of_male_condoms_provided",
+        "type": "edit_text",
+        "label": "Number of male condoms provided",
+        "hint": "Number of male condoms provided",
+        "v_max": {
+          "value": "100",
+          "err": "The % of the condoms provided must be equal or less than 100"
+        },
+        "v_numeric": {
+          "value": "true",
+          "err": "Please enter the number of condoms"
+        },
+        "v_max_length": {
+          "value": "2",
+          "is_fixed_size": "true",
+          "err": "Please enter a valid number of condoms"
+        },
+        "v_min": {
+          "value": "0",
+          "err": "Please enter the number of condoms"
+        },
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_preventive_services_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "hts_number_of_female_condoms_provided",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_number_of_female_condoms_provided",
+        "type": "edit_text",
+        "label": "Number of female condoms provided",
+        "hint": "Number of female condoms provided",
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "v_numeric": {
+          "value": "true",
+          "err": "Please enter the number of condoms"
+        },
+        "v_max": {
+          "value": "100",
+          "err": "The % of the condoms provided must be equal or less than 100"
+        },
+        "v_max_length": {
+          "value": "2",
+          "is_fixed_size": "true",
+          "err": "Please enter a valid number of condoms"
+        },
+        "v_min": {
+          "value": "0",
+          "err": "Please enter the number of condoms"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_preventive_services_rules.yml"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+
+

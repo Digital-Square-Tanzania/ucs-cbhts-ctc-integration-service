@@ -1,0 +1,289 @@
+{
+  "count": "1",
+  "encounter_type": "hiv_testing",
+  "entity_id": "",
+  "relational_id": "",
+  "validate_on_submit": true,
+  "show_errors_on_submit": true,
+  "metadata": {
+    "start": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "start",
+      "openmrs_entity_id": "163137AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "end": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "end",
+      "openmrs_entity_id": "163138AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "today": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "encounter",
+      "openmrs_entity_id": "encounter_date"
+    },
+    "deviceid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "deviceid",
+      "openmrs_entity_id": "163149AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "subscriberid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "subscriberid",
+      "openmrs_entity_id": "163150AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "simserial": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "simserial",
+      "openmrs_entity_id": "163151AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "phonenumber": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "phonenumber",
+      "openmrs_entity_id": "163152AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "encounter_location": "",
+    "look_up": {
+      "entity_id": "",
+      "value": ""
+    }
+  },
+  "step1": {
+    "title": "HIV Testing",
+    "fields": [
+      {
+        "key": "hts_type_of_test_used",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_type_of_test_used",
+        "type": "native_radio",
+        "label": "Type of test used",
+        "options": [
+          {
+            "key": "bioline",
+            "text": "Bioline"
+          },
+          {
+            "key": "hiv_syphilis_dual",
+            "text": "HIV/Syphilis Dual"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_kit_batch_number",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_kit_batch_number",
+        "type": "edit_text",
+        "label": "Kit batch number",
+        "hint": "Specify kit batch number",
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_kit_expire_date",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_kit_expire_date",
+        "type": "date_picker",
+        "min_date": "today",
+        "max_date": "today+5y",
+        "expanded": false,
+        "hint": "Select kit expire date",
+        "v_required": {
+          "value": "true",
+          "err": "Required"
+        }
+      },
+      {
+        "key": "hts_first_hiv_test_result",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_first_hiv_test_result",
+        "type": "native_radio",
+        "label": "First HIV Test result",
+        "options": [
+          {
+            "key": "non_reactive",
+            "text": "Non-Reactive"
+          },
+          {
+            "key": "reactive",
+            "text": "Reactive"
+          },
+          {
+            "key": "invalid",
+            "text": "Invalid"
+          },
+          {
+            "key": "wastage",
+            "text": "Wastage"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_second_kit_batch_number",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_second_kit_batch_number",
+        "type": "edit_text",
+        "label": "Second kit batch number",
+        "hint": "Specify second kit batch number",
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_second_kit_expire_date",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_second_kit_expire_date",
+        "type": "date_picker",
+        "min_date": "today",
+        "max_date": "today+5y",
+        "expanded": false,
+        "hint": "Select second kit expire date",
+        "v_required": {
+          "value": "true",
+          "err": "Required"
+        }
+      },
+      {
+        "key": "hts_second_hiv_test_result",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_second_hiv_test_result",
+        "type": "native_radio",
+        "label": "Second HIV Test result",
+        "options": [
+          {
+            "key": "non_reactive",
+            "text": "Non-Reactive"
+          },
+          {
+            "key": "reactive",
+            "text": "Reactive"
+          },
+          {
+            "key": "invalid",
+            "text": "Invalid"
+          },
+          {
+            "key": "wastage",
+            "text": "Wastage"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_unigold_kit_batch_number",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_unigold_kit_batch_number",
+        "type": "edit_text",
+        "label": "Unigold kit batch number",
+        "hint": "Specify unigold kit batch number",
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_unigold_kit_expire_date",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_unigold_kit_expire_date",
+        "type": "date_picker",
+        "min_date": "today",
+        "max_date": "today+5y",
+        "expanded": false,
+        "hint": "Select unigold kit expire date",
+        "v_required": {
+          "value": "true",
+          "err": "Required"
+        }
+      },
+      {
+        "key": "hts_unigold_hiv_test_result",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_unigold_hiv_test_result",
+        "type": "native_radio",
+        "label": "Unigold HIV Test result",
+        "options": [
+          {
+            "key": "negative",
+            "text": "Negative"
+          },
+          {
+            "key": "positive",
+            "text": "Positive"
+          },
+          {
+            "key": "non_reactive",
+            "text": "Inconclusive"
+          },
+          {
+            "key": "wastage",
+            "text": "Wastage"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_final_hiv_status",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_final_hiv_status",
+        "type": "native_radio",
+        "label": "Final HIV Test result",
+        "options": [
+          {
+            "key": "negative",
+            "text": "Negative"
+          },
+          {
+            "key": "positive",
+            "text": "Positive"
+          },
+          {
+            "key": "known_positive",
+            "text": "Known Positive"
+          },
+          {
+            "key": "inconclusive",
+            "text": "Inconclusive"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      }
+    ]
+  }
+}
+
+

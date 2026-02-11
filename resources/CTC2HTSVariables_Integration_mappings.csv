@@ -1,0 +1,250 @@
+,MaritalStatusCode: Hali ya ndoa,,
+,MaritalStatusCode,MaritalStatus,Integration Values
+,HO,Hajaoa/Hajaolewa,SINGLE
+,AM,Anaishi na Bwana/Bibi,COHABITING
+,NM,Ndoa ya mke mmoja,MARRIED_MONOGAMOUS
+,NW,Ndoa ya wake wengi,MARRIED_POLYGAMOUS
+,WT,Wametengana/Watalaka,SEPARATED_DIVORCED
+,MJ,Mjane/Mgane,WIDOWED
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,,,
+,PregnancyStatusCode: Hali ya ujauzito,,
+,PregnancyStatusCode,PregnancyStatus,Integration Values
+,MO,Mjamzito,PREGNANT
+,SM,Si mjamzito,NOT_PREGNANT
+,HA,Hajui,UNKNOWN
+,HH,Haihusiani,NOT_APPLICABLE
+,BF,Ananyonyesha,BREASTFEEDING
+,,,
+,,,
+,PreviousTestClientType: Aina ya mteja wa awali (Self Test tu),,
+,ClientTypeCode,ClientType,Integration Values
+,MB,Mteja Binafsi,SELF
+,MM,Mteja Mwenzi,SEXUAL_PARTNER
+,MR,Mteja Rafiki,PEER_FRIEND
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,,,
+,ClientType: Aina ya mteja wa sasa,,
+,ClientTypeCode,ClientType,Integration Values
+,IC,Index Contact,INDEX_CONTACT
+,MU,Mteja wa Uhakiki,VERIFICATION_CLIENT
+,MK,Mteja wa Kawaida,GENERAL_CLIENT
+,SNS,Social Network Contact,SOCIAL_NETWORK_CONTACT
+,,,
+,,,
+,AttendanceCode: Aina ya hudhurio,,
+,AttendanceCode,Attendance,Integration Values
+,MP,Mteja Mpya,NEW_CLIENT
+,HM,Hudhurio la Marudio,REPEAT_VISIT
+,HU,Hudhurio la Uhakiki,VERIFICATION_VISIT
+,,,
+,,,
+,RelationshipIndexClient: Uhusiano wa mteja (Index Contact) na index client,,
+,RelationshipIndexClientCode,RelationshipIndexClient,Integration Values
+,MN,Mshirika wa Ngono,SEXUAL_PARTNER
+,MTK,Mtoto wa Kuzaa,BIOLOGICAL_CHILD
+,MZM,Mama Mzazi wa Mtoto,BIOLOGICAL_MOTHER
+,MWK,Mshirika wa Kujidunga,INJECTING_PARTNER
+,NK,Ndugu wa kuzaliwa,BIOLOGICAL_SIBLING
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,EligibleForTesting: Amekidhi vigezo vya upimaji,,
+,ListItemCode,ListItemDescription,Integration Values
+,N,Ndiyo,YES
+,H,Hapana,NO
+,,,
+,TestingTypePrevious: Aina ya upimaji uliopita,,
+,ListItemCode,ListItemDescription,Integration Values
+,STO,Oral Based Self-Test,SELF_TEST_ORAL
+,ST,Self Testing,SELF_TEST
+,UU,Upimaji wa Uhakiki,VERIFICATION_TEST
+,STB,Blood Based Self Test,SELF_TEST_BLOOD
+,UA,Upimaji wa Awali,INITIAL_TEST
+,PCR,Polymerase Chain Reaction,PCR_TEST
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,,,
+,TestingType: Aina ya upimaji wa sasa,,
+,CounsellingTypeCode,CounsellingType,Integration Values
+,UA,Upimaji wa Awali,INITIAL_TEST
+,UU,Upimaji wa Uhakiki,VERIFICATION_TEST
+,STO,Oral Based Self test,SELF_TEST_ORAL
+,STB,Blood Based Self Test,SELF_TEST_BLOOD
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,,,
+,ReferredFromCode: Alikopimia mteja,,
+,ListItemCode,ListItemDescription,Integration Values
+,KK,Kliniki ya Kifua Kikuu (Wagonjwa wa nje) - OPD,TB_OPD_CLINIC
+,KM,Kliniki ya Magonjwa ya Ngono,STI_CLINIC
+,IM,Idara ya Magonjwa ya Nje,OUTPATIENT_DEPARTMENT
+,WW,Wagonjwa waliolazwa,INPATIENT_WARD
+,HD,Huduma ya Damu Salama,BLOOD_TRANSFUSION_SERVICE
+,HW,Huduma za upimaji ktk jamii,COMMUNITY_TESTING_SERVICE
+,WE,Sehemu ya upimajii VVU kwa hiyari (CITC),VOLUNTARY_HIV_TESTING_CITC
+,UM,Kliniki ya Uzazi wa Mpango,FAMILY_PLANNING_CLINIC
+,HT,Kituo cha Huduma na Tiba ya UKIMWI,CTC_CLINIC
+,TW,Tohara kwa Wanaume,VMMC_SERVICE
+,OS,Huduma ya Mkoba (Outreach Services),OUTREACH_SERVICE
+,RCH,"Kliniki ya mama, baba na mtoto",RCH_CLINIC
+,MB,Maabara,LABORATORY
+,US,Uchunguzi saratani ya mlango wa kizazi,CERVICAL_CANCER_SCREENING
+,ONST,Onsite self testing,ONSITE_SELF_TESTING
+,OFST,Offsite self testing,OFFSITE_SELF_TESTING
+,KW,Kwingineko,OTHER
+,,,
+,CounsellingTypeCode: Aina ya ushauri/nasaha,,
+,ListItemCode,ListItemDescription,Integration Values
+,MY,Mteja/Pekeyake,INDIVIDUAL
+,MM,Mtu na Mwenzi,COUPLE
+,KU,Kikundi,GROUP
+,MZ,Mteja na Mzazi/Mlezi,CLIENT_WITH_GUARDIAN
+,UF,Ushauri wa FAMILIA,FAMILY
+,AST,Assisted self testing,ASSISTED_SELF_TESTING
+,UST,Unassisted Self testing,UNASSISTED_SELF_TESTING
+,ONAST,Onsite Assisted self testing,ONSITE_ASSISTED_SELF_TESTING
+,ONUST,Onsite Unassisted Self testing,ONSITE_UNASSISTED_SELF_TESTING
+,OFAST,Offsite Assisted self testing,OFFSITE_ASSISTED_SELF_TESTING
+,OFUST,Offsite Unassisted Self testing,OFFSITE_UNASSISTED_SELF_TESTING
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,,,
+,TBScreeningDetails: Hali ya uambukizi wa kifua kikuu,,
+,ListItemCode,ListItemDescription,Integration Values
+,KU,Kuhisi kuwa Mteja ana Kifua Kikuu,TB_PRESUMPTIVE
+,HL,Hana Dalili za Kifua Kikuu,TB_NO_SYMPTOMS
+,AK,Amethibitika kuwa ana Kifua Kikuu,TB_CONFIRMED
+,HA,Hajaainishwa (Not screened),NOT_SCREENED
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,,,
+,PostTestCounsellingAndResultsGiven: Nasaha baada ya kupima na kupata majibu,,
+,DisclosureCode,Disclosure,Integration Values
+,ME,Mme,SPOUSE
+,MW,Mwenzi asiye mke/mme (Other Contacts),NON_SPOUSE_PARTNER
+,ND,Ndugu,FAMILY_MEMBER
+,RF,Rafiki,FRIEND
+,KD,Kiongozi wa Dini,RELIGIOUS_LEADER
+,WO,Wengineo,OTHER
+,HK,Hajawa tayari kushirikisha,NOT_READY_TO_DISCLOSE
+,CI,Mzazi/Mlezi,PARENT_GUARDIAN
+,,,
+,,,
+,DisclosureCode: Kushirikishwa majibu,,
+,DisclosureCode,Disclosure,Integration Values
+,ME,Mme,
+,KE,Mke,
+,MW,Mwenzi asiye mke/mme (Other Contacts),NON_SPOUSE_PARTNER
+,ND,Ndugu,FAMILY_MEMBER
+,RF,Rafiki,FRIEND
+,KD,Kiongozi wa Dini,RELIGIOUS_LEADER
+,WO,Wengineo,OTHER
+,HK,Hajawa tayari kushirikisha,NOT_READY_TO_DISCLOSE
+,CI,Mzazi/Mlezi,PARENT_GUARDIAN
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,ReagentTestFirst,,
+,Bioline,,
+,,,
+,,,
+,ReagentResultFirst: Majibu ya kipimo cha kwanza,,
+,HIVResultCode,HIVResult,Integration Values
+,R,Reactive,REACTIVE
+,NR,Non Reactive,NON_REACTIVE
+,INV,Invalid,INVALID
+,W,Wastage,WASTAGE
+,,,
+,,,
+,,,
+,ReagentTestSecond,,
+,Unigold,,
+,,,
+,ReagentResultSecond: Majibu ya kipimo cha pili,,
+,HIVResultCode,HIVResult,Integration Values
+,R,Reactive,REACTIVE
+,NR,Non Reactive,NON_REACTIVE
+,INV,Invalid,INVALID
+,W,Wastage,WASTAGE
+,,,
+,,,
+,ReagentTestMultiTest,,
+,H/S Duo,,
+,,,
+,ReagentResultMultiTestSyphilis,,
+,HIVResultCode,HIVResult,Integration Values
+,R,Reactive,REACTIVE
+,NR,Non Reactive,NON_REACTIVE
+,INV,Invalid,INVALID
+,W,Wastage,WASTAGE
+,,,
+,,,
+,DBSTaken: DBSImechukuliwa,,
+,HIVResultCode,HIVResult,Integration Values
+,H,Hapana,YES
+,N,Ndiyo,NO
+,W,Wastage,WASTAGE
+,,,
+,,,
+,DNAPCRTestSampleType,,
+,DBS,,
+,Plasma,,
+,,,
+,ReasonForReagentUse,,
+,HIVResultCode,HIVResult,Integration Values
+,UAK,Vipimo vya Utambuzi maambukizo ya VVU,HIV_DIAGNOSTIC_TEST
+,MT,Majibu Tata,INCONCLUSIVE
+,KHB,Kimeharibika (Upotevu),WASTAGE
+,INV,Jibu batili (Invalid),INVALID
+,,,
+,,,
+,CondomGiven,,
+,ItemID,ItemDescription,Integration Values
+,N,Ndio,YES
+,H,Hapana,NO
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,,,
+,ReferredToCode: Rufaa kwenda,,
+,ReferredToCode,ReferredTo,Integration Values
+,DK,Huduma za dawa kinga (PrEP),PREP_SERVICE
+,GBV,Huduma za ukatili wa kijinsia,GBV_SERVICE
+,HH,Haihusiki,NOT_APPLICABLE
+,HN,Huduma nyinginezo,OTHER_SERVICE
+,HT,Kituo cha Tiba na matunzo ya UKIMWI,CTC_CLINIC
+,KK,Kliniki ya Kifua Kikuu,TB_CLINIC
+,KL,Huduma za kuzuia maambukizi toka kwa mama kwenda kwa mtoto (PMTCT),PMTCT_SERVICE
+,KM,Kliniki ya magonjwa ya ngono,STI_CLINIC
+,MA,Maabara ya kupima na makohozi,LABORATORY_SERVICE
+,TK,Huduma za tiba kinga (PEP),PEP_SERVICE
+,TW,Tohara kwa wanaume,VMMC_SERVICE
+,UM,Kliniki ya Uzazi wa Mpango,FAMILY_PLANNING_CLINIC
+,YFS,Huduma rafiki kwa rika balehe na vijana,YOUTH_FRIENDLY_SERVICE
+,,,
+,,,
+,HIVInitialVerificationResultCode,,
+,HIVResultCode,HIVResult,Integration Values
+,HS,Hasi (Neg),NEGATIVE
+,MT,Majibu Tata,INCONCLUSIVE
+,TAM,Tayari anamaambukizi,KNOWN_POSITIVE
+,,,
+,,,
+,,,
+,PreviousTestResult,,
+,SelfTestingresultCode,SelfTestingresult,Integration Values
+,R,Reactive,REACTIVE
+,NR,Non Reactive,NON_REACTIVE
+,INV,Invalid,INVALID
+,JHK,Jibu halikupatikana,NO_RESULT
+,W,Upotevu,WASTAGE
+,HH,Haihusiki,NOT_APPLICABLE
+,,,
+,,,
+,HIVResultCode,,
+,HIVResultCode,HIVResult,Integration Values
+,CH,Chanya (Pos),POSITIVE
+,HS,Hasi (Neg),NEGATIVE
+,HJ,Hajapima,NOT_TESTED
+,MT,Majibu Tata,INCONCLUSIVE
+,TAM,Tayari anamaambukizi,KNOWN_POSITIVE

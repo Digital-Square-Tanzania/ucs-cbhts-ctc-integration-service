@@ -1,0 +1,578 @@
+{
+  "count": "6",
+  "encounter_type": "HTS Screening",
+  "entity_id": "",
+  "relational_id": "",
+  "global": {
+  },
+  "metadata": {
+    "start": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "start",
+      "openmrs_entity_id": "163137AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "end": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "end",
+      "openmrs_entity_id": "163138AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "today": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "encounter",
+      "openmrs_entity_id": "encounter_date"
+    },
+    "deviceid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "deviceid",
+      "openmrs_entity_id": "163149AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "subscriberid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "subscriberid",
+      "openmrs_entity_id": "163150AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "simserial": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "simserial",
+      "openmrs_entity_id": "163151AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "phonenumber": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "phonenumber",
+      "openmrs_entity_id": "163152AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "encounter_location": "",
+    "look_up": {
+      "entity_id": "",
+      "value": ""
+    }
+  },
+  "step1": {
+    "next": "step2",
+    "title": "HTS Screening",
+    "fields": [
+      {
+        "key": "hts_is_client_pregnant",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_is_client_pregnant",
+        "type": "native_radio",
+        "label": "Is client pregnant?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "hts_is_client_breastfeeding",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_is_client_breastfeeding",
+        "type": "native_radio",
+        "label": "Is the client breastfeeding?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "hts_has_the_client_ever_tested_for_hiv",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_has_the_client_ever_tested_for_hiv",
+        "type": "native_radio",
+        "label": "Has the client ever tested for HIV?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_has_testing_been_done_more_than_12_months_ago",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_has_testing_been_done_more_than_12_months_ago",
+        "type": "native_radio",
+        "label": "Has the testing been done more than 12 months ago?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "hts_last_hiv_test_results_are_unknown_or_were_indeterminate_inconclusive",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_last_hiv_test_results_are_unknown_or_were_indeterminate_inconclusive",
+        "type": "native_radio",
+        "label": "Were the last HIV test results unknown or were indeterminate/Inconclusive?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "hts_does_client_report_to_test_hiv_positive_but_no_evidence_ctc1_card_or_referral_form",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_does_client_report_to_test_hiv_positive_but_no_evidence_ctc1_card_or_referral_form",
+        "type": "native_radio",
+        "label": "Does the client report to test HIV positive but no evidence? (CTC 1 card or referral form)",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "step2": {
+    "next": "step3",
+    "title": "General Health Assessment",
+    "fields": [
+      {
+        "key": "hts_does_the_client_have_any_of_the_following_general_health_assessment",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_does_the_client_have_any_of_the_following_general_health_assessment",
+        "type": "check_box",
+        "label": "Does the client have any of the following?",
+        "label_text_style": "bold",
+        "text_color": "#000000",
+        "combine_checkbox_option_values": "true",
+        "exclusive": ["none"],
+        "options": [
+          {
+            "key": "swollen_glands_lymph_nodes",
+            "text": "Swollen glands/lymph nodes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "swollen_glands_lymph_nodes"
+          },
+          {
+            "key": "mouth_ulcer_sores_rashes",
+            "text": "Mouth ulcer/Sores/Rashes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "mouth_ulcer_sores_rashes"
+          },
+          {
+            "key": "recurrent_skin_diseases",
+            "text": "Recurrent Skin Diseases",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "recurrent_skin_diseases"
+          },
+          {
+            "key": "none",
+            "text": "None",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "none"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select an option"
+        }
+      }
+    ]
+  },
+  "step3": {
+    "next": "step4",
+    "title": "Tuberculosis Symptoms Assessment",
+    "fields": [
+      {
+        "key": "hts_does_the_client_have_any_of_the_following_tuberculosis_symptoms_assessment",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_does_the_client_have_any_of_the_following_tuberculosis_symptoms_assessment",
+        "type": "check_box",
+        "combine_checkbox_option_values": "true",
+        "label": "Does the client have any of the following?",
+        "label_text_style": "bold",
+        "text_color": "#000000",
+        "exclusive": ["none"],
+        "options": [
+          {
+            "key": "cough_for_more_than_two_weeks",
+            "text": "Cough for more than two weeks",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "cough_for_more_than_two_weeks"
+          },
+          {
+            "key": "fever_for_more_than_two_weeks",
+            "text": "Fever for more than two weeks",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "fever_for_more_than_two_weeks"
+          },
+          {
+            "key": "night_sweats_for_any_duration",
+            "text": "Night sweats for any duration",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "night_sweats_for_any_duration"
+          },
+          {
+            "key": "noticeable_weight_loss",
+            "text": "Noticeable weight loss",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "noticeable_weight_loss"
+          },
+          {
+            "key": "blood_stained_sputum",
+            "text": "Blood stained sputum",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "blood_stained_sputum"
+          },
+          {
+            "key": "none",
+            "text": "None",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "none"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select an option"
+        }
+      }
+    ]
+  },
+  "step4": {
+    "next": "step5",
+    "title": "STI Symptoms Assessment",
+    "fields": [
+      {
+        "key": "hts_does_the_client_have_any_of_the_following_sti_symptoms_assessment",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_does_the_client_have_any_of_the_following_sti_symptoms_assessment",
+        "type": "check_box",
+        "combine_checkbox_option_values": "true",
+        "exclusive": [
+          "none"
+        ],
+        "label": "Does the client have any of the following?",
+        "label_text_style": "bold",
+        "text_color": "#000000",
+        "options": [
+          {
+            "key": "abnormal_discharge_from_the_vagina_penis",
+            "text": "Abnormal discharge from the vagina/penis",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "abnormal_discharge_from_the_vagina_penis"
+          },
+          {
+            "key": "burning_itching_or_pain_when_urinating",
+            "text": "Burning, itching or pain then urinating (Pee)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "burning_itching_or_pain_when_urinating"
+          },
+          {
+            "key": "any_ulcer_sore_or_warts_in_genital_areas",
+            "text": "Any ulcer/sore/warts in genital areas",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "any_ulcer_sore_or_warts_in_genital_areas"
+          },
+          {
+            "key": "none",
+            "text": "None",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "none"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select an option"
+        }
+      }
+    ]
+  },
+  "step5": {
+    "title": "HIV Exposure Assessment",
+    "next": "step6",
+    "fields": [
+      {
+        "key": "hts_has_the_client_had_sexual_intercourse_with_a_person_with_hiv_or_with_a_person_whose_hiv_status_is_unknown",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_has_the_client_had_sexual_intercourse_with_a_person_with_hiv_or_with_a_person_whose_hiv_status_is_unknown",
+        "type": "native_radio",
+        "label": "Has the client had unprotected sexual intercourse with a person with HIV or an unknown HIV status?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_has_the_client_had_sex_under_the_influence_of_drugs_or_alcohol",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_has_the_client_had_sex_under_the_influence_of_drugs_or_alcohol",
+        "type": "native_radio",
+        "label": "Has the client had sex while under the influence of alcohol and/or drugs?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_has_the_client_had_more_than_one_sexual_partner_in_the_last_12_months",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_has_the_client_had_more_than_one_sexual_partner_in_the_last_12_months",
+        "type": "native_radio",
+        "label": "Has the client had more than one sexual partner in the last 12 months?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      }
+    ]
+  },
+  "step6": {
+    "title": "HIV Testing Eligibility",
+    "fields": [
+      {
+        "key": "eligibility_for_testing",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "eligibility_for_testing",
+        "type": "hidden",
+        "calculation": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "prompt_for_eligibility_to_test_for_hiv",
+        "type": "toaster_notes",
+        "text": "The client is eligible for an HIV test. Refer or provide HTS services",
+        "openmrs_entity_id": "prompt_for_eligibility_to_test_for_hiv",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": "",
+        "toaster_type": "problem",
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "prompt_for_clients_with_lower_hiv_risk",
+        "type": "toaster_notes",
+        "text": "The client is not eligible for an HIV test. Provide other services as appropriate.",
+        "toaster_type": "info",
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "does_the_client_still_want_to_test",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "does_the_client_still_want_to_test",
+        "type": "native_radio",
+        "label": "Does the client still want to test for HIV?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_screening_rules_15_and_above.yml"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+
+

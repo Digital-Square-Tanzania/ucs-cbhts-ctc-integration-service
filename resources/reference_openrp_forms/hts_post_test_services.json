@@ -1,0 +1,279 @@
+{
+  "count": "1",
+  "encounter_type": "post_test_services",
+  "entity_id": "",
+  "relational_id": "",
+  "validate_on_submit": true,
+  "show_errors_on_submit": false,
+  "metadata": {
+    "start": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "start",
+      "openmrs_entity_id": "163137AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "end": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "end",
+      "openmrs_entity_id": "163138AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "today": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "encounter",
+      "openmrs_entity_id": "encounter_date"
+    },
+    "deviceid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "deviceid",
+      "openmrs_entity_id": "163149AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "subscriberid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "subscriberid",
+      "openmrs_entity_id": "163150AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "simserial": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "simserial",
+      "openmrs_entity_id": "163151AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "phonenumber": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "phonenumber",
+      "openmrs_entity_id": "163152AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "encounter_location": "",
+    "look_up": {
+      "entity_id": "",
+      "value": ""
+    }
+  },
+  "global": {},
+  "step1": {
+    "title": "Post-Test Services",
+    "fields": [
+      {
+        "key": "hts_has_post_test_counselling_been_provided",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_has_post_test_counselling_been_provided",
+        "type": "native_radio",
+        "label": "Was client provided with post-test counselling?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select the client visit type"
+        }
+      },
+      {
+        "key": "hts_hiv_results_disclosure",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_hiv_results_disclosure",
+        "type": "check_box",
+        "combine_checkbox_option_values": "true",
+        "label": "HIV results disclosure",
+        "label_text_style": "bold",
+        "text_color": "#000000",
+        "exclusive": ["not_ready_to_share"],
+        "options": [
+          {
+            "key": "husband",
+            "text": "Husband",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "husband"
+          },
+          {
+            "key": "wife",
+            "text": "Wife",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "wife"
+          },
+          {
+            "key": "partner_who_is_not_wife_or_husband",
+            "text": "Partner who is not wife/husband",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "partner_who_is_not_wife_or_husband"
+          },
+          {
+            "key": "relative",
+            "text": "Relative",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "relative"
+          },
+          {
+            "key": "friend",
+            "text": "Friend",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "friend"
+          },
+          {
+            "key": "religious_leader",
+            "text": "Religious Leader",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "religious_leader"
+          },
+          {
+            "key": "others",
+            "text": "Others",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "others"
+          },
+          {
+            "key": "not_ready_to_share",
+            "text": "Not ready to share",
+            "openmrs_entity_parent": "",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "not_ready_to_share"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select an option"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_post_test_services_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "other_people_results_have_been_disclosed_to",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "other_people_results_have_been_disclosed_to",
+        "type": "edit_text",
+        "hint": "Specify other people the results have been disclosed to",
+        "v_required": {
+          "value": "true",
+          "err": "Please specify"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_post_test_services_rules.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "reasons_for_not_disclosing_results",
+        "type": "check_box",
+        "label_text_style": "bold",
+        "label": "Reasons for not being ready to share results",
+        "combine_checkbox_option_values": "true",
+        "openmrs_entity_id": "reasons_for_not_disclosing_results",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": "",
+        "options": [
+          {
+            "key": "fear_of_stigma",
+            "text": "Fear of Stigma and Discrimination",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "fear_of_stigma"
+          },
+          {
+            "key": "fear_of_negative_consequences",
+            "text": "Fear of Negative Consequences like loss of relationship, violence and abuse",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "fear_of_negative_consequences"
+          },
+          {
+            "key": "lack_of_support_systems",
+            "text": "Lack of Support Systems like not supported by friends, family or community",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "lack_of_support_systems"
+          },
+          {
+            "key": "psychological_and_emotional_factors",
+            "text": "Psychological and Emotional Factors",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "psychological_and_emotional_factors"
+          },
+          {
+            "key": "uncertainty_about_legal_and_ethical_implications",
+            "text": "Uncertainty about the Legal and Ethical Implications",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "uncertainty_about_legal_and_ethical_implications"
+          },
+          {
+            "key": "cultural_and_societal_norms",
+            "text": "Cultural and Societal Norms",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "cultural_and_societal_norms"
+          },
+          {
+            "key": "misinformation",
+            "text": "Misinformation or Lack of Education",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "misinformation"
+          },
+          {
+            "key": "self_perception_and_identity",
+            "text": "Self-Perception and Identity",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "self_perception_and_identity"
+          },
+          {
+            "key": "concerns_about_medical_and_health_care_disclosure",
+            "text": "Concerns about Medical and Health Care Disclosure",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "concerns_about_medical_and_health_care_disclosure"
+          },
+          {
+            "key": "fear_of_impact_on_partner_relationships",
+            "text": "Fear of Impact on Partner Relationships",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "fear_of_impact_on_partner_relationships"
+          },
+          {
+            "key": "economic_and_social_vulnerability",
+            "text": "Economic and Social Vulnerability",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "economic_and_social_vulnerability"
+          }
+        ],
+        "v_required": {
+          "value": true,
+          "err": "Please fill this question"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_post_test_services_rules.yml"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+
+

@@ -1,0 +1,223 @@
+{
+  "count": "1",
+  "encounter_type": "Pre-Test Services",
+  "entity_id": "",
+  "relational_id": "",
+  "validate_on_submit": true,
+  "show_errors_on_submit": false,
+  "metadata": {
+    "start": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "start",
+      "openmrs_entity_id": "163137AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "end": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "end",
+      "openmrs_entity_id": "163138AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "today": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "encounter",
+      "openmrs_entity_id": "encounter_date"
+    },
+    "deviceid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "deviceid",
+      "openmrs_entity_id": "163149AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "subscriberid": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "subscriberid",
+      "openmrs_entity_id": "163150AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "simserial": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "simserial",
+      "openmrs_entity_id": "163151AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "phonenumber": {
+      "openmrs_entity_parent": "",
+      "openmrs_entity": "concept",
+      "openmrs_data_type": "phonenumber",
+      "openmrs_entity_id": "163152AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    "encounter_location": "",
+    "look_up": {
+      "entity_id": "",
+      "value": ""
+    }
+  },
+  "step1": {
+    "title": "Pre-Test Services",
+    "fields": [
+      {
+        "key": "hts_has_pre_test_counselling_been_provided",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_has_pre_test_counselling_been_provided",
+        "type": "native_radio",
+        "label": "Has Pre-Test Counselling been provided?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        }
+      },
+      {
+        "key": "hts_type_of_counselling_provided",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_type_of_counselling_provided",
+        "type": "native_radio",
+        "label": "Type of counselling provided",
+        "options": [
+          {
+            "key": "individual",
+            "text": "Individual",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "individual"
+          },
+          {
+            "key": "couple",
+            "text": "Couple",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "couple"
+          },
+          {
+            "key": "with_parent_or_guardian",
+            "text": "With parent/guardian",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "with_parent_or_guardian"
+          },
+          {
+            "key": "group",
+            "text": "Group",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "group"
+          },
+          {
+            "key": "family",
+            "text": "Family Counselling",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "family"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "step1:hts_has_pre_test_counselling_been_provided": {
+            "type": "string",
+            "ex": "equalTo(., \"yes\")"
+          }
+        }
+      },
+      {
+        "key": "hts_clients_tb_screening_outcome",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "",
+        "openmrs_entity_id": "",
+        "type": "native_radio",
+        "label": "Select clients TB screening outcome",
+        "options": [
+          {
+            "key": "tb_suspect",
+            "text": "TB Presumptive",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "tb_suspect"
+          },
+          {
+            "key": "screened_negative",
+            "text": "Screened Negative",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "screened_negative"
+          },
+          {
+            "key": "on_tb_treatment",
+            "text": "On TB Treatment",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "on_tb_treatment"
+          },
+          {
+            "key": "not_screened",
+            "text": "Not Screened",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "not_screened"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select an answer"
+        }
+      },
+      {
+        "key": "hts_does_client_need_hiv_self_test_kits",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "",
+        "openmrs_entity_id": "",
+        "type": "native_radio",
+        "label": "Does the client need HIV self test kits?",
+        "options": [
+          {
+            "key": "yes",
+            "text": "Yes",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "yes"
+          },
+          {
+            "key": "no",
+            "text": "No",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "no"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select an answer"
+        }
+      },
+      {
+        "key": "prompt_for_hivst",
+        "type": "toaster_notes",
+        "text": "Please use HIVST Module to record the Information",
+        "openmrs_entity_id": "prompt_for_hivst",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": "",
+        "toaster_type": "warning",
+        "relevance": {
+          "step1:hts_does_client_need_hiv_self_test_kits": {
+            "type": "string",
+            "ex": "equalTo(., \"yes\")"
+          }
+        }
+      },
+      {
+        "key": "pre_test_services_completion_status",
+        "type": "hidden",
+        "openmrs_entity_id": "pre_test_services_completion_status",
+        "openmrs_entity": "concept",
+        "openmrs_entity_parent": ""
+      }
+    ]
+  }
+}
