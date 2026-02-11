@@ -21,7 +21,7 @@ import java.util.TreeSet;
 
 public class IntegrationDataMapper {
 
-    private static final String DEFAULT_NOT_APPLICABLE_CODE = "HH";
+    private static final String DEFAULT_NOT_APPLICABLE_VALUE = "NOT_APPLICABLE";
 
     private static final Map<String, String> MARITAL_ALIASES = aliases(
             "single", "SINGLE",
@@ -29,6 +29,7 @@ public class IntegrationDataMapper {
             "married", "MARRIED_MONOGAMOUS",
             "polygamous", "MARRIED_POLYGAMOUS",
             "cohabiting", "COHABITING",
+            "cohabitation", "COHABITING",
             "living_with_partner", "COHABITING",
             "divorced", "SEPARATED_DIVORCED",
             "separated", "SEPARATED_DIVORCED",
@@ -123,8 +124,8 @@ public class IntegrationDataMapper {
     );
 
     private static final Map<String, String> DISCLOSURE_ALIASES = aliases(
-            "husband", "ME",
-            "wife", "KE",
+            "husband", "SPOUSE",
+            "wife", "SPOUSE",
             "partner_who_is_not_wife_or_husband", "NON_SPOUSE_PARTNER",
             "relative", "FAMILY_MEMBER",
             "friend", "FRIEND",
@@ -254,8 +255,8 @@ public class IntegrationDataMapper {
 
         demographics.put("sexCode", serviceRow.sex());
         demographics.put("dateOfBirth", normalizeDate(serviceRow.birthDate()));
-        demographics.put("maritalStatusCode", catalog.mapToCode("MaritalStatusCode", serviceRow.maritalStatus(), MARITAL_ALIASES, DEFAULT_NOT_APPLICABLE_CODE));
-        demographics.put("pregnancyStatusCode", catalog.mapToCode("PregnancyStatusCode", serviceRow.pregnancyStatus(), PREGNANCY_ALIASES, DEFAULT_NOT_APPLICABLE_CODE));
+        demographics.put("maritalStatusCode", catalog.mapToIntegrationValue("MaritalStatusCode", serviceRow.maritalStatus(), MARITAL_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
+        demographics.put("pregnancyStatusCode", catalog.mapToIntegrationValue("PregnancyStatusCode", serviceRow.pregnancyStatus(), PREGNANCY_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
         demographics.put("smsConsent", hasText(serviceRow.phoneNumber()));
 
         return demographics;
@@ -275,22 +276,23 @@ public class IntegrationDataMapper {
     private Map<String, Object> mapClientClassification(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
         Map<String, Object> clientClassification = new LinkedHashMap<>();
 
-        clientClassification.put("previousTestClientType", catalog.mapToCode(
+        clientClassification.put("previousTestClientType", catalog.mapToIntegrationValue(
                 "PreviousTestClientType",
                 serviceRow.htsPreviousHivstClientType(),
                 PREVIOUS_CLIENT_TYPE_ALIASES,
-                DEFAULT_NOT_APPLICABLE_CODE));
+                DEFAULT_NOT_APPLICABLE_VALUE));
 
-        String clientTypeCode = catalog.mapToCode("ClientType", serviceRow.htsClientType(), CLIENT_TYPE_ALIASES, DEFAULT_NOT_APPLICABLE_CODE);
-        clientClassification.put("clientType", clientTypeCode);
+        String clientTypeValue = catalog.mapToIntegrationValue("ClientType", serviceRow.htsClientType(), CLIENT_TYPE_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE);
+        clientClassification.put("clientType", clientTypeValue);
 
-        clientClassification.put("attendanceCode", catalog.mapToCode(
+        clientClassification.put("attendanceCode", catalog.mapToIntegrationValue(
                 "AttendanceCode",
                 serviceRow.htsVisitType(),
                 ATTENDANCE_ALIASES,
-                DEFAULT_NOT_APPLICABLE_CODE));
+                DEFAULT_NOT_APPLICABLE_VALUE));
 
-        clientClassification.put("relationshipIndexClient", "IC".equals(clientTypeCode) ? "MN" : DEFAULT_NOT_APPLICABLE_CODE);
+        clientClassification.put("relationshipIndexClient",
+                "INDEX_CONTACT".equals(clientTypeValue) ? "SEXUAL_PARTNER" : DEFAULT_NOT_APPLICABLE_VALUE);
 
         boolean recentlySelfTested = toBoolean(serviceRow.htsHasTheClientRecentlyTestedWithHivst());
         clientClassification.put("eligibleForTesting", !recentlySelfTested);
@@ -302,16 +304,16 @@ public class IntegrationDataMapper {
                                                   List<OpenSrpIntegrationRepository.TestRow> tests) {
         Map<String, Object> testingHistory = new LinkedHashMap<>();
 
-        testingHistory.put("testingTypePrevious", catalog.mapToCode(
+        testingHistory.put("testingTypePrevious", catalog.mapToIntegrationValue(
                 "TestingTypePrevious",
                 serviceRow.htsPreviousHivstTestType(),
                 TESTING_TYPE_ALIASES,
-                DEFAULT_NOT_APPLICABLE_CODE));
+                DEFAULT_NOT_APPLICABLE_VALUE));
 
-        String previousResultCode = DEFAULT_NOT_APPLICABLE_CODE;
+        String previousResultCode = DEFAULT_NOT_APPLICABLE_VALUE;
         for (OpenSrpIntegrationRepository.TestRow test : tests) {
             if (hasText(test.testResult())) {
-                previousResultCode = catalog.mapToCode("PreviousTestResult", test.testResult(), HIV_RESULT_ALIASES, DEFAULT_NOT_APPLICABLE_CODE);
+                previousResultCode = catalog.mapToIntegrationValue("PreviousTestResult", test.testResult(), HIV_RESULT_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE);
                 break;
             }
         }
@@ -330,28 +332,28 @@ public class IntegrationDataMapper {
             testingTypeSource = "initial_test";
         }
 
-        currentTesting.put("testingType", catalog.mapToCode("TestingType", testingTypeSource, TESTING_TYPE_ALIASES, DEFAULT_NOT_APPLICABLE_CODE));
+        currentTesting.put("testingType", catalog.mapToIntegrationValue("TestingType", testingTypeSource, TESTING_TYPE_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
 
         String referredFromSource = firstNonBlank(serviceRow.htsTestingPoint(), serviceRow.htsTestingApproach());
-        currentTesting.put("referredFromCode", catalog.mapToCode("ReferredFromCode", referredFromSource, REFERRED_FROM_ALIASES, DEFAULT_NOT_APPLICABLE_CODE));
+        currentTesting.put("referredFromCode", catalog.mapToIntegrationValue("ReferredFromCode", referredFromSource, REFERRED_FROM_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
 
-        currentTesting.put("counsellingTypeCode", catalog.mapToCode(
+        currentTesting.put("counsellingTypeCode", catalog.mapToIntegrationValue(
                 "CounsellingTypeCode",
                 serviceRow.htsTypeOfCounsellingProvided(),
                 COUNSELLING_TYPE_ALIASES,
-                DEFAULT_NOT_APPLICABLE_CODE));
+                DEFAULT_NOT_APPLICABLE_VALUE));
 
-        currentTesting.put("tbScreeningDetails", catalog.mapToCode(
+        currentTesting.put("tbScreeningDetails", catalog.mapToIntegrationValue(
                 "TBScreeningDetails",
                 serviceRow.htsClientsTbScreeningOutcome(),
                 TB_SCREENING_ALIASES,
-                DEFAULT_NOT_APPLICABLE_CODE));
+                DEFAULT_NOT_APPLICABLE_VALUE));
 
         currentTesting.put("postTestCounsellingAndResultsGiven", toBoolean(serviceRow.htsHasPostTestCounsellingBeenProvided()));
 
         List<Map<String, Object>> disclosures = new ArrayList<>();
         for (String disclosure : splitValues(serviceRow.htsHivResultsDisclosure())) {
-            String code = catalog.mapToCode("DisclosureCode", disclosure, DISCLOSURE_ALIASES, DEFAULT_NOT_APPLICABLE_CODE);
+            String code = catalog.mapToIntegrationValue("PostTestCounsellingAndResultsGiven", disclosure, DISCLOSURE_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE);
             if (code != null) {
                 Map<String, Object> disclosureItem = new LinkedHashMap<>();
                 disclosureItem.put("disclosureCode", code);
@@ -376,7 +378,7 @@ public class IntegrationDataMapper {
             testItem.put("selfTestBatchNo", test.testKitBatchNumber());
             testItem.put("selfTestExpiryDate", normalizeDate(test.testKitExpireDate()));
             testItem.put("selfTestKitName", prettifyName(test.typeOfTestKitUsed()));
-            testItem.put("selfTestingResults", catalog.mapToCode("PreviousTestResult", test.testResult(), HIV_RESULT_ALIASES, DEFAULT_NOT_APPLICABLE_CODE));
+            testItem.put("selfTestingResults", catalog.mapToIntegrationValue("PreviousTestResult", test.testResult(), HIV_RESULT_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
             selfTesting.add(testItem);
         }
 
@@ -396,7 +398,7 @@ public class IntegrationDataMapper {
             testItem.put("reagentExpiry", normalizeDate(test.testKitExpireDate()));
             testItem.put("reagentTest", mapKitName(test.typeOfTestKitUsed()));
             testItem.put("testType", mapTestType(test.testType()));
-            testItem.put("reagentResult", catalog.mapToCode("ReagentResultFirst", test.testResult(), HIV_RESULT_ALIASES, DEFAULT_NOT_APPLICABLE_CODE));
+            testItem.put("reagentResult", catalog.mapToIntegrationValue("ReagentResultFirst", test.testResult(), HIV_RESULT_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
             testItem.put("syphilisResult", mapSyphilisResult(test.syphilisTestResults()));
             reagentTesting.add(testItem);
         }
@@ -417,16 +419,16 @@ public class IntegrationDataMapper {
     private Map<String, Object> mapReferralAndOutcome(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
         Map<String, Object> referralAndOutcome = new LinkedHashMap<>();
 
-        String referredToCode = DEFAULT_NOT_APPLICABLE_CODE;
+        String referredToCode = DEFAULT_NOT_APPLICABLE_VALUE;
         for (String preventiveService : splitValues(serviceRow.htsPreventiveServices())) {
-            referredToCode = catalog.mapToCode("ReferredToCode", preventiveService, REFERRED_TO_ALIASES, null);
+            referredToCode = catalog.mapToIntegrationValue("ReferredToCode", preventiveService, REFERRED_TO_ALIASES, null);
             if (referredToCode != null) {
                 break;
             }
         }
 
         if (referredToCode == null) {
-            referredToCode = DEFAULT_NOT_APPLICABLE_CODE;
+            referredToCode = DEFAULT_NOT_APPLICABLE_VALUE;
         }
 
         referralAndOutcome.put("referredToCode", referredToCode);
@@ -442,8 +444,8 @@ public class IntegrationDataMapper {
 
         String normalized = MappingReferenceCatalog.normalize(rawValue);
         return switch (normalized) {
-            case "BIOLINE" -> "SD_BIOLINE";
-            case "HIV_SYPHILIS_DUAL", "H_S_DUO" -> "DUAL";
+            case "MULTITEST", "MULTI_TEST", "DUAL", "HIV_SYPHILIS_DUAL", "H_S_DUO" -> "DUAL";
+            case "BIOLINE", "SD_BIOLINE" -> "SD_BIOLINE";
             case "UNIGOLD" -> "UNIGOLD";
             default -> normalized;
         };
