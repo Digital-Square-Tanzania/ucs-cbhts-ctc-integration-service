@@ -25,7 +25,8 @@ public class OpenSrpIntegrationRepository {
     public long countServices(Connection connection, IntegrationRequest request) throws SQLException {
         String sql = "SELECT COUNT(*) " +
                 "FROM " + schema + ".cbhts_services s " +
-                "JOIN " + schema + ".tanzania_locations l ON l.location_uuid = s.location_id " +
+                "JOIN " + schema + ".team_members tm ON tm.identifier = s.provider_id " +
+                "JOIN " + schema + ".tanzania_locations l ON l.location_uuid = tm.location_uuid " +
                 "WHERE l.hfr_code = ? " +
                 "AND ((s.date_created BETWEEN ? AND ?) OR (s.date_created BETWEEN ? AND ?))";
 
