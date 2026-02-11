@@ -185,7 +185,7 @@ public class IntegrationDataMapper {
         item.put("demographics", mapDemographics(serviceRow));
         item.put("residence", mapResidence(serviceRow));
         item.put("clientClassification", mapClientClassification(serviceRow));
-        item.put("testingHistory", mapTestingHistory(serviceRow, safeTestRows));
+        item.put("testingHistory", mapTestingHistory(serviceRow));
         item.put("currentTesting", mapCurrentTesting(serviceRow));
         item.put("selfTesting", mapSelfTesting(safeTestRows));
         item.put("reagentTesting", mapReagentTesting(safeTestRows));
@@ -309,8 +309,7 @@ public class IntegrationDataMapper {
         return clientClassification;
     }
 
-    private Map<String, Object> mapTestingHistory(OpenSrpIntegrationRepository.ServiceRow serviceRow,
-                                                  List<OpenSrpIntegrationRepository.TestRow> tests) {
+    private Map<String, Object> mapTestingHistory(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
         Map<String, Object> testingHistory = new LinkedHashMap<>();
 
         testingHistory.put("testingTypePrevious", catalog.mapToIntegrationValue(
@@ -319,13 +318,12 @@ public class IntegrationDataMapper {
                 TESTING_TYPE_ALIASES,
                 DEFAULT_NOT_APPLICABLE_VALUE));
 
-        String previousResultCode = DEFAULT_NOT_APPLICABLE_VALUE;
-        for (OpenSrpIntegrationRepository.TestRow test : tests) {
-            if (hasText(test.testResult())) {
-                previousResultCode = catalog.mapToIntegrationValue("PreviousTestResult", test.testResult(), HIV_RESULT_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE);
-                break;
-            }
-        }
+        String previousResultCode = catalog.mapToIntegrationValue(
+                "PreviousTestResult",
+                serviceRow.htsPreviousHivstTestResults(),
+                HIV_RESULT_ALIASES,
+                DEFAULT_NOT_APPLICABLE_VALUE
+        );
 
         testingHistory.put("previousTestResult", previousResultCode);
         return testingHistory;

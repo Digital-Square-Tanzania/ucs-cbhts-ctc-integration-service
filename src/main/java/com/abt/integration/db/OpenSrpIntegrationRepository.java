@@ -55,7 +55,7 @@ public class OpenSrpIntegrationRepository {
         String sql = "SELECT " +
                 "s.event_id, s.base_entity_id, s.hts_visit_group, s.visit_date, s.hts_visit_date, s.date_created, " +
                 "s.provider_id, s.hts_testing_approach, s.hts_visit_type, s.hts_has_the_client_recently_tested_with_hivst, " +
-                "s.hts_previous_hivst_client_type, s.hts_previous_hivst_test_type, s.hts_client_type, s.hts_testing_point, " +
+                "s.hts_previous_hivst_client_type, s.hts_previous_hivst_test_type, s.hts_previous_hivst_test_results, s.hts_client_type, s.hts_testing_point, " +
                 "s.hts_type_of_counselling_provided, s.hts_clients_tb_screening_outcome, s.hts_has_post_test_counselling_been_provided, " +
                 "s.hts_hiv_results_disclosure, s.hts_were_condoms_distributed, s.hts_number_of_male_condoms_provided, " +
                 "s.hts_number_of_female_condoms_provided, s.hts_preventive_services, " +
@@ -103,6 +103,7 @@ public class OpenSrpIntegrationRepository {
                             resultSet.getString("hts_has_the_client_recently_tested_with_hivst"),
                             resultSet.getString("hts_previous_hivst_client_type"),
                             resultSet.getString("hts_previous_hivst_test_type"),
+                            resultSet.getString("hts_previous_hivst_test_results"),
                             resultSet.getString("hts_client_type"),
                             resultSet.getString("hts_testing_point"),
                             resultSet.getString("hts_type_of_counselling_provided"),
@@ -271,6 +272,7 @@ public class OpenSrpIntegrationRepository {
             String htsHasTheClientRecentlyTestedWithHivst,
             String htsPreviousHivstClientType,
             String htsPreviousHivstTestType,
+            String htsPreviousHivstTestResults,
             String htsClientType,
             String htsTestingPoint,
             String htsTypeOfCounsellingProvided,

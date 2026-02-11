@@ -184,6 +184,39 @@
         }
       },
       {
+        "key": "hts_previous_hivst_test_results",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "hts_previous_hivst_test_results",
+        "type": "native_radio",
+        "label": "Previous HIVST results",
+        "options": [
+          {
+            "key": "reactive",
+            "text": "Reactive",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "reactive"
+          },
+          {
+            "key": "non_reactive",
+            "text": "Non Reactive",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "non_reactive"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_visit_type_rule.yml"
+            }
+          }
+        }
+      },
+      {
         "key": "hts_client_type",
         "openmrs_entity_parent": "",
         "openmrs_entity": "concept",

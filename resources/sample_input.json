@@ -31,6 +31,7 @@
         "hts_does_client_need_hiv_self_test_kits": "yes",
         "pre_test_services_completion_status": "complete",
         "hts_has_the_client_recently_tested_with_hivst": "no",
+        "hts_previous_hivst_test_results":null,
         "date_created": 1766384165416,
         "unique_id": "86099462",
         "first_name": "Jesca",

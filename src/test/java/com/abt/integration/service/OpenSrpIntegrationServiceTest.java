@@ -63,6 +63,7 @@ class OpenSrpIntegrationServiceTest {
                 "no",
                 "self",
                 "sto",
+                "reactive",
                 "normal_client",
                 "cbhts",
                 "individual",

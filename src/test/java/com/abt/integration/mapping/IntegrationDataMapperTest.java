@@ -30,6 +30,7 @@ class IntegrationDataMapperTest {
                 "no",
                 "self",
                 "sto",
+                "reactive",
                 "normal_client",
                 "cbhts",
                 "individual",
@@ -108,6 +109,10 @@ class IntegrationDataMapperTest {
         assertEquals("COMMUNITY_TESTING_SERVICE", currentTesting.get("referredFromCode"));
         assertEquals("INDIVIDUAL", currentTesting.get("counsellingTypeCode"));
         assertEquals("TB_PRESUMPTIVE", currentTesting.get("tbScreeningDetails"));
+
+        Map<String, Object> testingHistory = (Map<String, Object>) mapped.get("testingHistory");
+        assertEquals("SELF_TEST_ORAL", testingHistory.get("testingTypePrevious"));
+        assertEquals("REACTIVE", testingHistory.get("previousTestResult"));
 
         List<Map<String, Object>> selfTesting = (List<Map<String, Object>>) mapped.get("selfTesting");
         assertEquals(1, selfTesting.size());
@@ -218,6 +223,7 @@ class IntegrationDataMapperTest {
                 femaleServiceRow.htsHasTheClientRecentlyTestedWithHivst(),
                 femaleServiceRow.htsPreviousHivstClientType(),
                 femaleServiceRow.htsPreviousHivstTestType(),
+                femaleServiceRow.htsPreviousHivstTestResults(),
                 femaleServiceRow.htsClientType(),
                 femaleServiceRow.htsTestingPoint(),
                 femaleServiceRow.htsTypeOfCounsellingProvided(),
@@ -278,6 +284,7 @@ class IntegrationDataMapperTest {
                 baseServiceRow.htsHasTheClientRecentlyTestedWithHivst(),
                 "sexual_partner",
                 baseServiceRow.htsPreviousHivstTestType(),
+                baseServiceRow.htsPreviousHivstTestResults(),
                 "normal_client",
                 baseServiceRow.htsTestingPoint(),
                 baseServiceRow.htsTypeOfCounsellingProvided(),
@@ -318,6 +325,146 @@ class IntegrationDataMapperTest {
         assertEquals("GENERAL_CLIENT", clientClassification.get("clientType"));
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldMapTestingTypePreviousFromHtsPreviousHivstTestType() {
+        OpenSrpIntegrationRepository.ServiceRow baseServiceRow = buildServiceRow("Single");
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = new OpenSrpIntegrationRepository.ServiceRow(
+                baseServiceRow.eventId(),
+                baseServiceRow.baseEntityId(),
+                baseServiceRow.htsVisitGroup(),
+                baseServiceRow.visitDate(),
+                baseServiceRow.htsVisitDate(),
+                baseServiceRow.dateCreated(),
+                baseServiceRow.providerId(),
+                baseServiceRow.htsTestingApproach(),
+                baseServiceRow.htsVisitType(),
+                baseServiceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                baseServiceRow.htsPreviousHivstClientType(),
+                "stb",
+                baseServiceRow.htsPreviousHivstTestResults(),
+                baseServiceRow.htsClientType(),
+                baseServiceRow.htsTestingPoint(),
+                baseServiceRow.htsTypeOfCounsellingProvided(),
+                baseServiceRow.htsClientsTbScreeningOutcome(),
+                baseServiceRow.htsHasPostTestCounsellingBeenProvided(),
+                baseServiceRow.htsHivResultsDisclosure(),
+                baseServiceRow.htsWereCondomsDistributed(),
+                baseServiceRow.htsNumberOfMaleCondomsProvided(),
+                baseServiceRow.htsNumberOfFemaleCondomsProvided(),
+                baseServiceRow.htsPreventiveServices(),
+                baseServiceRow.uniqueId(),
+                baseServiceRow.firstName(),
+                baseServiceRow.middleName(),
+                baseServiceRow.lastName(),
+                baseServiceRow.phoneNumber(),
+                baseServiceRow.nationalId(),
+                baseServiceRow.voterId(),
+                baseServiceRow.driverLicense(),
+                baseServiceRow.passport(),
+                baseServiceRow.sex(),
+                baseServiceRow.birthDate(),
+                baseServiceRow.maritalStatus(),
+                baseServiceRow.pregnancyStatus(),
+                baseServiceRow.hfrCode(),
+                baseServiceRow.region(),
+                baseServiceRow.district(),
+                baseServiceRow.districtCouncil(),
+                baseServiceRow.ward(),
+                baseServiceRow.healthFacility(),
+                baseServiceRow.village(),
+                baseServiceRow.counsellorName()
+        );
+
+        OpenSrpIntegrationRepository.TestRow testRow = new OpenSrpIntegrationRepository.TestRow(
+                "test-1",
+                "visit-group-1",
+                "base-1",
+                "bioline",
+                "BATCH001",
+                "2026-12-31",
+                "reactive",
+                null,
+                "self_test",
+                1768262800000L
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(testRow));
+        Map<String, Object> testingHistory = (Map<String, Object>) mapped.get("testingHistory");
+
+        assertEquals("SELF_TEST_BLOOD", testingHistory.get("testingTypePrevious"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldMapPreviousTestResultFromHtsPreviousHivstTestResults() {
+        OpenSrpIntegrationRepository.ServiceRow baseServiceRow = buildServiceRow("Single");
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = new OpenSrpIntegrationRepository.ServiceRow(
+                baseServiceRow.eventId(),
+                baseServiceRow.baseEntityId(),
+                baseServiceRow.htsVisitGroup(),
+                baseServiceRow.visitDate(),
+                baseServiceRow.htsVisitDate(),
+                baseServiceRow.dateCreated(),
+                baseServiceRow.providerId(),
+                baseServiceRow.htsTestingApproach(),
+                baseServiceRow.htsVisitType(),
+                baseServiceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                baseServiceRow.htsPreviousHivstClientType(),
+                baseServiceRow.htsPreviousHivstTestType(),
+                "non_reactive",
+                baseServiceRow.htsClientType(),
+                baseServiceRow.htsTestingPoint(),
+                baseServiceRow.htsTypeOfCounsellingProvided(),
+                baseServiceRow.htsClientsTbScreeningOutcome(),
+                baseServiceRow.htsHasPostTestCounsellingBeenProvided(),
+                baseServiceRow.htsHivResultsDisclosure(),
+                baseServiceRow.htsWereCondomsDistributed(),
+                baseServiceRow.htsNumberOfMaleCondomsProvided(),
+                baseServiceRow.htsNumberOfFemaleCondomsProvided(),
+                baseServiceRow.htsPreventiveServices(),
+                baseServiceRow.uniqueId(),
+                baseServiceRow.firstName(),
+                baseServiceRow.middleName(),
+                baseServiceRow.lastName(),
+                baseServiceRow.phoneNumber(),
+                baseServiceRow.nationalId(),
+                baseServiceRow.voterId(),
+                baseServiceRow.driverLicense(),
+                baseServiceRow.passport(),
+                baseServiceRow.sex(),
+                baseServiceRow.birthDate(),
+                baseServiceRow.maritalStatus(),
+                baseServiceRow.pregnancyStatus(),
+                baseServiceRow.hfrCode(),
+                baseServiceRow.region(),
+                baseServiceRow.district(),
+                baseServiceRow.districtCouncil(),
+                baseServiceRow.ward(),
+                baseServiceRow.healthFacility(),
+                baseServiceRow.village(),
+                baseServiceRow.counsellorName()
+        );
+
+        OpenSrpIntegrationRepository.TestRow conflictingTestRow = new OpenSrpIntegrationRepository.TestRow(
+                "test-1",
+                "visit-group-1",
+                "base-1",
+                "bioline",
+                "BATCH001",
+                "2026-12-31",
+                "reactive",
+                null,
+                "self_test",
+                1768262800000L
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(conflictingTestRow));
+        Map<String, Object> testingHistory = (Map<String, Object>) mapped.get("testingHistory");
+
+        assertEquals("NON_REACTIVE", testingHistory.get("previousTestResult"));
+    }
+
     private OpenSrpIntegrationRepository.ServiceRow buildServiceRow(String maritalStatus) {
         return new OpenSrpIntegrationRepository.ServiceRow(
                 "event-1",
@@ -332,6 +479,7 @@ class IntegrationDataMapperTest {
                 "no",
                 "self",
                 "sto",
+                "reactive",
                 "normal_client",
                 "cbhts",
                 "individual",
