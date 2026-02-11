@@ -23,9 +23,9 @@ export OPENSRP_DB_PASSWORD=<db_password>
 
 Then build and run:
 
-```
+```bash
   ./gradlew clean shadowJar
-  java -jar build/libs/ucs-lab-module-integration-service-<version>.jar
+  java -jar build/libs/ucs-lab-module-integration-service-1.0.0.jar
 ```
 
 ## 3. Endpoint
@@ -51,29 +51,58 @@ Mapping references used by the service:
 - `resources/CTC2HTSVariables_Integration_mappings.csv`
 - `resources/reference_openrp_forms/`
 
+Example request:
+
+```bash
+curl --request POST "http://127.0.0.1:8080/integration/ctc2hts" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "hfrCode": "124899-6",
+    "startDate": 1768262400,
+    "endDate": 1768262800,
+    "pageIndex": 1,
+    "pageSize": 100
+  }'
+```
+
 ## 4. Deployment via Docker
 
-First Install docker in your PC by following [this guide](https://docs.docker.com/engine/install/). Secondly, clone this repo to your computer by using git clone and the repo's address:
+Build the image:
 
-`git clone https://github.com/Digital-Square-Tanzania/ucs-lab-integration-service.git`
+```bash
+docker build -t ucs-cbhts-ctc-integration-service .
+```
 
-Once you have completed cloning the repo, go inside the repo in your computer: `cd ucs-lab-integration-service`
+Run container:
 
-Update `application.conf` found in `src/main/resources/` with the correct configs and use the following Docker commands for various uses:
+```bash
+docker run -d \
+  --name ucs-cbhts-ctc-integration-service \
+  -p 127.0.0.1:8080:8080 \
+  -e OPENSRP_DB_HOST=host.docker.internal \
+  -e OPENSRP_DB_PORT=5432 \
+  -e OPENSRP_DB_NAME=opensrp \
+  -e OPENSRP_DB_SCHEMA=public \
+  -e OPENSRP_DB_USER=<db_user> \
+  -e OPENSRP_DB_PASSWORD=<db_password> \
+  ucs-cbhts-ctc-integration-service
+```
 
-### Run/start
-`docker build -t ucs-lab-integration-service .`
+Optional:
+- Use `OPENSRP_DB_URL` instead of host/port/name/schema.
+- Use `OPENSRP_DB_SSLMODE` if SSL is required.
 
-`docker run -d -p 127.0.0.1:9202:9202 ucs-lab-integration-service`
+View logs:
 
+```bash
+docker logs -f ucs-cbhts-ctc-integration-service
+```
 
-### Interact With Shell
+Stop and remove container:
 
-`docker exec -it ucs-lab-integration-service sh`
-
-### Stop Services
-
-`docker stop ucs-lab-integration-service`
+```bash
+docker rm -f ucs-cbhts-ctc-integration-service
+```
 
 ## License
 
