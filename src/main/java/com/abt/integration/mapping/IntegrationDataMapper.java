@@ -74,9 +74,6 @@ public class IntegrationDataMapper {
             "sto", "SELF_TEST_ORAL",
             "stb", "SELF_TEST_BLOOD",
             "st", "SELF_TEST",
-            "ua", "INITIAL_TEST",
-            "uu", "VERIFICATION_TEST",
-            "pcr", "PCR_TEST",
             "initial_test", "INITIAL_TEST",
             "verification_test", "VERIFICATION_TEST",
             "self_test_oral", "SELF_TEST_ORAL",
@@ -256,10 +253,22 @@ public class IntegrationDataMapper {
         demographics.put("sexCode", serviceRow.sex());
         demographics.put("dateOfBirth", normalizeDate(serviceRow.birthDate()));
         demographics.put("maritalStatusCode", catalog.mapToIntegrationValue("MaritalStatusCode", serviceRow.maritalStatus(), MARITAL_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
-        demographics.put("pregnancyStatusCode", catalog.mapToIntegrationValue("PregnancyStatusCode", serviceRow.pregnancyStatus(), PREGNANCY_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
+        demographics.put("pregnancyStatusCode", mapPregnancyStatusBySex(serviceRow.sex()));
         demographics.put("smsConsent", hasText(serviceRow.phoneNumber()));
 
         return demographics;
+    }
+
+    private String mapPregnancyStatusBySex(String sex) {
+        if (isMaleSex(sex)) {
+            return "NOT_APPLICABLE";
+        }
+        return "UNKNOWN";
+    }
+
+    private boolean isMaleSex(String sex) {
+        String normalized = MappingReferenceCatalog.normalize(sex);
+        return "MALE".equals(normalized) || "M".equals(normalized);
     }
 
     private Map<String, Object> mapResidence(OpenSrpIntegrationRepository.ServiceRow serviceRow) {

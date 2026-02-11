@@ -216,6 +216,290 @@
         }
       },
       {
+        "key": "type_of_index_client_female_below_11",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_index_client",
+        "type": "native_radio",
+        "label": "Type of Index Client",
+        "options": [
+          {
+            "key": "biological_child",
+            "text": "Biological children",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_child"
+          },
+          {
+            "key": "biological_mother",
+            "text": "Biological mother",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_mother"
+          },
+          {
+            "key": "pwid",
+            "text": "PWID",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "pwid"
+          },
+          {
+            "key": "siblings",
+            "text": "Siblings",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "siblings"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_visit_type_rule.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "type_of_index_client_female_11_to_18",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_index_client",
+        "type": "native_radio",
+        "label": "Type of Index Client",
+        "options": [
+          {
+            "key": "sexual_partner",
+            "text": "Sexual partner",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "sexual_partner"
+          },
+          {
+            "key": "biological_child",
+            "text": "Biological children",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_child"
+          },
+          {
+            "key": "biological_mother",
+            "text": "Biological mother",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_mother"
+          },
+          {
+            "key": "pwid",
+            "text": "PWID",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "pwid"
+          },
+          {
+            "key": "siblings",
+            "text": "Siblings",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "siblings"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_visit_type_rule.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "type_of_index_client_female_19_and_above",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_index_client",
+        "type": "native_radio",
+        "label": "Type of Index Client",
+        "options": [
+          {
+            "key": "sexual_partner",
+            "text": "Sexual partner",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "sexual_partner"
+          },
+          {
+            "key": "biological_mother",
+            "text": "Biological mother",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_mother"
+          },
+          {
+            "key": "pwid",
+            "text": "PWID",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "pwid"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_visit_type_rule.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "type_of_index_client_male_below_11",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_index_client",
+        "type": "native_radio",
+        "label": "Type of Index Client",
+        "options": [
+          {
+            "key": "biological_child",
+            "text": "Biological children",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_child"
+          },
+          {
+            "key": "biological_father",
+            "text": "Biological father (if mother deceased)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_father"
+          },
+          {
+            "key": "pwid",
+            "text": "PWID",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "pwid"
+          },
+          {
+            "key": "siblings",
+            "text": "Siblings",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "siblings"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_visit_type_rule.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "type_of_index_client_male_11_to_18",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_index_client",
+        "type": "native_radio",
+        "label": "Type of Index Client",
+        "options": [
+          {
+            "key": "sexual_partner",
+            "text": "Sexual partner",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "sexual_partner"
+          },
+          {
+            "key": "biological_child",
+            "text": "Biological children",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_child"
+          },
+          {
+            "key": "biological_father",
+            "text": "Biological father (if mother deceased)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_father"
+          },
+          {
+            "key": "pwid",
+            "text": "PWID",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "pwid"
+          },
+          {
+            "key": "siblings",
+            "text": "Siblings",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "siblings"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_visit_type_rule.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "type_of_index_client_male_19_and_above",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_index_client",
+        "type": "native_radio",
+        "label": "Type of Index Client",
+        "options": [
+          {
+            "key": "sexual_partner",
+            "text": "Sexual partner",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "sexual_partner"
+          },
+          {
+            "key": "biological_father",
+            "text": "Biological father (if mother deceased)",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "biological_father"
+          },
+          {
+            "key": "pwid",
+            "text": "PWID",
+            "openmrs_entity": "concept",
+            "openmrs_entity_id": "pwid"
+          }
+        ],
+        "v_required": {
+          "value": "true",
+          "err": "Please select a value"
+        },
+        "relevance": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_visit_type_rule.yml"
+            }
+          }
+        }
+      },
+      {
+        "key": "type_of_index_client",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_index_client",
+        "type": "hidden",
+        "calculation": {
+          "rules-engine": {
+            "ex-rules": {
+              "rules-file": "hts_visit_type_rule.yml"
+            }
+          }
+        }
+      },
+      {
         "key": "hts_testing_approach",
         "openmrs_entity_parent": "",
         "openmrs_entity": "concept",
@@ -381,5 +665,3 @@
     ]
   }
 }
-
-

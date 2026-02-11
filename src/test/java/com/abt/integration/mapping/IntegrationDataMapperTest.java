@@ -96,7 +96,7 @@ class IntegrationDataMapperTest {
 
         Map<String, Object> demographics = (Map<String, Object>) mapped.get("demographics");
         assertEquals("SINGLE", demographics.get("maritalStatusCode"));
-        assertEquals("PREGNANT", demographics.get("pregnancyStatusCode"));
+        assertEquals("UNKNOWN", demographics.get("pregnancyStatusCode"));
 
         Map<String, Object> clientClassification = (Map<String, Object>) mapped.get("clientClassification");
         assertEquals("SELF", clientClassification.get("previousTestClientType"));
@@ -199,6 +199,123 @@ class IntegrationDataMapperTest {
         assertEquals("DUAL", reagentTesting.get(0).get("reagentTest"));
         assertEquals("SD_BIOLINE", reagentTesting.get(1).get("reagentTest"));
         assertEquals("UNIGOLD", reagentTesting.get(2).get("reagentTest"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldSetPregnancyStatusNotApplicableForMaleClients() {
+        OpenSrpIntegrationRepository.ServiceRow femaleServiceRow = buildServiceRow("Single");
+        OpenSrpIntegrationRepository.ServiceRow maleServiceRow = new OpenSrpIntegrationRepository.ServiceRow(
+                femaleServiceRow.eventId(),
+                femaleServiceRow.baseEntityId(),
+                femaleServiceRow.htsVisitGroup(),
+                femaleServiceRow.visitDate(),
+                femaleServiceRow.htsVisitDate(),
+                femaleServiceRow.dateCreated(),
+                femaleServiceRow.providerId(),
+                femaleServiceRow.htsTestingApproach(),
+                femaleServiceRow.htsVisitType(),
+                femaleServiceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                femaleServiceRow.htsPreviousHivstClientType(),
+                femaleServiceRow.htsPreviousHivstTestType(),
+                femaleServiceRow.htsClientType(),
+                femaleServiceRow.htsTestingPoint(),
+                femaleServiceRow.htsTypeOfCounsellingProvided(),
+                femaleServiceRow.htsClientsTbScreeningOutcome(),
+                femaleServiceRow.htsHasPostTestCounsellingBeenProvided(),
+                femaleServiceRow.htsHivResultsDisclosure(),
+                femaleServiceRow.htsWereCondomsDistributed(),
+                femaleServiceRow.htsNumberOfMaleCondomsProvided(),
+                femaleServiceRow.htsNumberOfFemaleCondomsProvided(),
+                femaleServiceRow.htsPreventiveServices(),
+                femaleServiceRow.uniqueId(),
+                femaleServiceRow.firstName(),
+                femaleServiceRow.middleName(),
+                femaleServiceRow.lastName(),
+                femaleServiceRow.phoneNumber(),
+                femaleServiceRow.nationalId(),
+                femaleServiceRow.voterId(),
+                femaleServiceRow.driverLicense(),
+                femaleServiceRow.passport(),
+                "Male",
+                femaleServiceRow.birthDate(),
+                femaleServiceRow.maritalStatus(),
+                femaleServiceRow.pregnancyStatus(),
+                femaleServiceRow.hfrCode(),
+                femaleServiceRow.region(),
+                femaleServiceRow.district(),
+                femaleServiceRow.districtCouncil(),
+                femaleServiceRow.ward(),
+                femaleServiceRow.healthFacility(),
+                femaleServiceRow.village(),
+                femaleServiceRow.counsellorName()
+        );
+
+        Map<String, Object> femaleMapped = mapper.mapServiceRow(femaleServiceRow, List.of());
+        Map<String, Object> maleMapped = mapper.mapServiceRow(maleServiceRow, List.of());
+
+        Map<String, Object> femaleDemographics = (Map<String, Object>) femaleMapped.get("demographics");
+        Map<String, Object> maleDemographics = (Map<String, Object>) maleMapped.get("demographics");
+
+        assertEquals("UNKNOWN", femaleDemographics.get("pregnancyStatusCode"));
+        assertEquals("NOT_APPLICABLE", maleDemographics.get("pregnancyStatusCode"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldMapPreviousTestClientTypeFromHtsPreviousHivstClientType() {
+        OpenSrpIntegrationRepository.ServiceRow baseServiceRow = buildServiceRow("Single");
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = new OpenSrpIntegrationRepository.ServiceRow(
+                baseServiceRow.eventId(),
+                baseServiceRow.baseEntityId(),
+                baseServiceRow.htsVisitGroup(),
+                baseServiceRow.visitDate(),
+                baseServiceRow.htsVisitDate(),
+                baseServiceRow.dateCreated(),
+                baseServiceRow.providerId(),
+                baseServiceRow.htsTestingApproach(),
+                baseServiceRow.htsVisitType(),
+                baseServiceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                "sexual_partner",
+                baseServiceRow.htsPreviousHivstTestType(),
+                "normal_client",
+                baseServiceRow.htsTestingPoint(),
+                baseServiceRow.htsTypeOfCounsellingProvided(),
+                baseServiceRow.htsClientsTbScreeningOutcome(),
+                baseServiceRow.htsHasPostTestCounsellingBeenProvided(),
+                baseServiceRow.htsHivResultsDisclosure(),
+                baseServiceRow.htsWereCondomsDistributed(),
+                baseServiceRow.htsNumberOfMaleCondomsProvided(),
+                baseServiceRow.htsNumberOfFemaleCondomsProvided(),
+                baseServiceRow.htsPreventiveServices(),
+                baseServiceRow.uniqueId(),
+                baseServiceRow.firstName(),
+                baseServiceRow.middleName(),
+                baseServiceRow.lastName(),
+                baseServiceRow.phoneNumber(),
+                baseServiceRow.nationalId(),
+                baseServiceRow.voterId(),
+                baseServiceRow.driverLicense(),
+                baseServiceRow.passport(),
+                baseServiceRow.sex(),
+                baseServiceRow.birthDate(),
+                baseServiceRow.maritalStatus(),
+                baseServiceRow.pregnancyStatus(),
+                baseServiceRow.hfrCode(),
+                baseServiceRow.region(),
+                baseServiceRow.district(),
+                baseServiceRow.districtCouncil(),
+                baseServiceRow.ward(),
+                baseServiceRow.healthFacility(),
+                baseServiceRow.village(),
+                baseServiceRow.counsellorName()
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> clientClassification = (Map<String, Object>) mapped.get("clientClassification");
+
+        assertEquals("SEXUAL_PARTNER", clientClassification.get("previousTestClientType"));
+        assertEquals("GENERAL_CLIENT", clientClassification.get("clientType"));
     }
 
     private OpenSrpIntegrationRepository.ServiceRow buildServiceRow(String maritalStatus) {

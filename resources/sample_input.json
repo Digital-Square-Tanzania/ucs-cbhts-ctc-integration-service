@@ -15,6 +15,7 @@
         "hts_visit_type": "returning",
         "hts_client_type": "normal_client",
         "hts_client_type_returning": "normal_client",
+        "type_of_index_client":null,
         "hts_preventive_services": "family_planning,sexual_transmitted_infections_clinic,prep_services",
         "hts_testing_approach": "citc",
         "hts_testing_point": "citc",
