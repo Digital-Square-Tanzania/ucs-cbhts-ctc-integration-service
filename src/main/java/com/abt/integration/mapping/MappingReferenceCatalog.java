@@ -91,6 +91,47 @@ public class MappingReferenceCatalog {
         return fallbackCode;
     }
 
+    public String mapToIntegrationValue(String sectionName, String rawValue, Map<String, String> aliases, String fallbackValue) {
+        if (isBlank(rawValue)) {
+            return fallbackValue;
+        }
+
+        String normalizedSection = normalize(sectionName);
+        SectionMapping mapping = sectionMappings.get(normalizedSection);
+        if (mapping == null) {
+            return fallbackValue;
+        }
+
+        String normalizedRaw = normalize(rawValue);
+
+        String byIntegrationValue = mapping.integrationByNormalizedIntegration().get(normalizedRaw);
+        if (byIntegrationValue != null) {
+            return byIntegrationValue;
+        }
+
+        String byCode = mapping.integrationByNormalizedCode().get(normalizedRaw);
+        if (byCode != null) {
+            return byCode;
+        }
+
+        if (aliases != null) {
+            String alias = aliases.get(normalizedRaw);
+            if (alias != null) {
+                String normalizedAlias = normalize(alias);
+                String aliasByIntegration = mapping.integrationByNormalizedIntegration().get(normalizedAlias);
+                if (aliasByIntegration != null) {
+                    return aliasByIntegration;
+                }
+                String aliasByCode = mapping.integrationByNormalizedCode().get(normalizedAlias);
+                if (aliasByCode != null) {
+                    return aliasByCode;
+                }
+            }
+        }
+
+        return fallbackValue;
+    }
+
     public boolean isKnownFormOption(String fieldKey, String rawOption) {
         if (isBlank(fieldKey) || isBlank(rawOption)) {
             return false;
@@ -160,10 +201,12 @@ public class MappingReferenceCatalog {
 
                 String normalizedSection = normalize(currentSection);
                 SectionMapping sectionMapping = sectionMappings.computeIfAbsent(normalizedSection,
-                        unused -> new SectionMapping(new HashMap<>(), new HashMap<>()));
+                        unused -> new SectionMapping(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>()));
 
                 sectionMapping.codeByNormalizedCode().put(normalize(secondColumn), secondColumn);
                 sectionMapping.codeByNormalizedIntegration().put(normalize(fourthColumn), secondColumn);
+                sectionMapping.integrationByNormalizedCode().put(normalize(secondColumn), fourthColumn);
+                sectionMapping.integrationByNormalizedIntegration().put(normalize(fourthColumn), fourthColumn);
             }
         } catch (IOException e) {
             throw new IllegalStateException("Failed to load mapping CSV", e);
@@ -295,6 +338,8 @@ public class MappingReferenceCatalog {
     }
 
     private record SectionMapping(Map<String, String> codeByNormalizedCode,
-                                  Map<String, String> codeByNormalizedIntegration) {
+                                  Map<String, String> codeByNormalizedIntegration,
+                                  Map<String, String> integrationByNormalizedCode,
+                                  Map<String, String> integrationByNormalizedIntegration) {
     }
 }
