@@ -64,14 +64,9 @@ public class OpenSrpIntegrationRepository {
                 "l.hfr_code, l.region, l.district, l.district_council, l.ward, l.health_facility, l.village, " +
                 "COALESCE(tm.name, s.provider_id) AS counsellor_name " +
                 "FROM " + schema + ".cbhts_services s " +
-                "JOIN " + schema + ".tanzania_locations l ON l.location_uuid = s.location_id " +
+                "JOIN " + schema + ".team_members tm ON tm.identifier = s.provider_id " +
+                "JOIN " + schema + ".tanzania_locations l ON l.location_uuid = tm.location_uuid " +
                 "LEFT JOIN " + schema + ".client c ON c.base_entity_id = s.base_entity_id " +
-                "LEFT JOIN LATERAL (" +
-                "  SELECT m.name " +
-                "  FROM " + schema + ".team_members m " +
-                "  WHERE m.identifier = s.provider_id OR m.uuid = s.provider_id " +
-                "  LIMIT 1" +
-                ") tm ON TRUE " +
                 "WHERE l.hfr_code = ? " +
                 "AND ((s.date_created BETWEEN ? AND ?) OR (s.date_created BETWEEN ? AND ?)) " +
                 "ORDER BY s.date_created ASC, s.event_id ASC " +
