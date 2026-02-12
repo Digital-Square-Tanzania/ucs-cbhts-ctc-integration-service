@@ -138,6 +138,80 @@ class IntegrationDataMapperTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void mapServiceRow_shouldMapClientIdentificationByPriorityAcrossSupportedIds() {
+        OpenSrpIntegrationRepository.ServiceRow baseServiceRow = buildServiceRow("Single");
+
+        OpenSrpIntegrationRepository.ServiceRow withNational = withIdentificationDocuments(
+                baseServiceRow,
+                "NAT123",
+                "VOT123",
+                "DL123",
+                "P123"
+        );
+        OpenSrpIntegrationRepository.ServiceRow withVoter = withIdentificationDocuments(
+                baseServiceRow,
+                null,
+                "VOT123",
+                "DL123",
+                "P123"
+        );
+        OpenSrpIntegrationRepository.ServiceRow withDriverLicense = withIdentificationDocuments(
+                baseServiceRow,
+                null,
+                null,
+                "DL123",
+                "P123"
+        );
+        OpenSrpIntegrationRepository.ServiceRow withPassport = withIdentificationDocuments(
+                baseServiceRow,
+                null,
+                null,
+                null,
+                "P123"
+        );
+
+        Map<String, Object> mappedNational = mapper.mapServiceRow(withNational, List.of());
+        Map<String, Object> mappedVoter = mapper.mapServiceRow(withVoter, List.of());
+        Map<String, Object> mappedDriverLicense = mapper.mapServiceRow(withDriverLicense, List.of());
+        Map<String, Object> mappedPassport = mapper.mapServiceRow(withPassport, List.of());
+
+        Map<String, Object> nationalIdentification = (Map<String, Object>) mappedNational.get("clientIdentification");
+        assertEquals("NIDA", nationalIdentification.get("clientUniqueIdentifierType"));
+        assertEquals("NAT123", nationalIdentification.get("clientUniqueIdentifierCode"));
+
+        Map<String, Object> voterIdentification = (Map<String, Object>) mappedVoter.get("clientIdentification");
+        assertEquals("VOTER_ID", voterIdentification.get("clientUniqueIdentifierType"));
+        assertEquals("VOT123", voterIdentification.get("clientUniqueIdentifierCode"));
+
+        Map<String, Object> driverLicenseIdentification = (Map<String, Object>) mappedDriverLicense.get("clientIdentification");
+        assertEquals("DRIVER_LICENSE", driverLicenseIdentification.get("clientUniqueIdentifierType"));
+        assertEquals("DL123", driverLicenseIdentification.get("clientUniqueIdentifierCode"));
+
+        Map<String, Object> passportIdentification = (Map<String, Object>) mappedPassport.get("clientIdentification");
+        assertEquals("PASSPORT", passportIdentification.get("clientUniqueIdentifierType"));
+        assertEquals("P123", passportIdentification.get("clientUniqueIdentifierCode"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldReturnEmptyClientIdentificationWhenAllIdsAreMissing() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withIdentificationDocuments(
+                buildServiceRow("Single"),
+                null,
+                null,
+                null,
+                null
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
+        assertTrue(mapped.get("clientIdentification") instanceof List<?>);
+
+        List<Object> clientIdentification = (List<Object>) mapped.get("clientIdentification");
+        assertTrue(clientIdentification.isEmpty());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void mapServiceRow_shouldMapSupportedDatabaseMaritalStatuses() {
         Map<String, String> expectedValuesByMaritalStatus = new LinkedHashMap<>();
         expectedValuesByMaritalStatus.put("Single", "SINGLE");
@@ -188,11 +262,11 @@ class IntegrationDataMapperTest {
                 1768262801000L
         );
 
-        OpenSrpIntegrationRepository.TestRow unigold = new OpenSrpIntegrationRepository.TestRow(
+        OpenSrpIntegrationRepository.TestRow firstResponse = new OpenSrpIntegrationRepository.TestRow(
                 "test-3",
                 "visit-group-1",
                 "base-1",
-                "unigold",
+                " First Response ",
                 "B3",
                 "2026-01-01",
                 "non_reactive",
@@ -201,13 +275,79 @@ class IntegrationDataMapperTest {
                 1768262802000L
         );
 
-        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(multiTest, bioline, unigold));
+        OpenSrpIntegrationRepository.TestRow unigold = new OpenSrpIntegrationRepository.TestRow(
+                "test-4",
+                "visit-group-1",
+                "base-1",
+                "unigold",
+                "B4",
+                "2026-01-01",
+                "non_reactive",
+                null,
+                "first",
+                1768262803000L
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(multiTest, bioline, firstResponse, unigold));
         List<Map<String, Object>> reagentTesting = (List<Map<String, Object>>) mapped.get("reagentTesting");
 
-        assertEquals(3, reagentTesting.size());
+        assertEquals(4, reagentTesting.size());
         assertEquals("DUAL", reagentTesting.get(0).get("reagentTest"));
         assertEquals("SD_BIOLINE", reagentTesting.get(1).get("reagentTest"));
-        assertEquals("UNIGOLD", reagentTesting.get(2).get("reagentTest"));
+        assertEquals("FIRST_RESPONSE", reagentTesting.get(2).get("reagentTest"));
+        assertEquals("UNIGOLD", reagentTesting.get(3).get("reagentTest"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldOverrideReferralToCtcClinicWhenUnigoldIsReactive() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = buildServiceRow("Single");
+
+        OpenSrpIntegrationRepository.TestRow unigoldReactive = new OpenSrpIntegrationRepository.TestRow(
+                "test-1",
+                "visit-group-1",
+                "base-1",
+                "bioline",
+                "B1",
+                "2026-01-01",
+                " reactive ",
+                null,
+                " unigold ",
+                1768262800000L
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(unigoldReactive));
+        List<Map<String, Object>> referralAndOutcome = (List<Map<String, Object>>) mapped.get("referralAndOutcome");
+
+        assertEquals(1, referralAndOutcome.size());
+        assertEquals("CTC_CLINIC", referralAndOutcome.get(0).get("referredToCode"));
+        assertEquals("13211-1", referralAndOutcome.get(0).get("toFacility"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldKeepDefaultReferralWhenUnigoldIsNotReactive() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = buildServiceRow("Single");
+
+        OpenSrpIntegrationRepository.TestRow unigoldNonReactive = new OpenSrpIntegrationRepository.TestRow(
+                "test-1",
+                "visit-group-1",
+                "base-1",
+                "bioline",
+                "B1",
+                "2026-01-01",
+                "non_reactive",
+                null,
+                "unigold",
+                1768262800000L
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(unigoldNonReactive));
+        List<Map<String, Object>> referralAndOutcome = (List<Map<String, Object>>) mapped.get("referralAndOutcome");
+
+        assertEquals(1, referralAndOutcome.size());
+        assertEquals("PREP_SERVICE", referralAndOutcome.get(0).get("referredToCode"));
+        assertEquals("13211-1", referralAndOutcome.get(0).get("toFacility"));
     }
 
     @SuppressWarnings("unchecked")
@@ -515,6 +655,61 @@ class IntegrationDataMapperTest {
                 "TZ.NT.MY.ML.4.8.1",
                 "TZ.NT.MY.ML.4.8.1.3",
                 "John Doe"
+        );
+    }
+
+    private OpenSrpIntegrationRepository.ServiceRow withIdentificationDocuments(
+            OpenSrpIntegrationRepository.ServiceRow serviceRow,
+            String nationalId,
+            String voterId,
+            String driverLicense,
+            String passport
+    ) {
+        return new OpenSrpIntegrationRepository.ServiceRow(
+                serviceRow.eventId(),
+                serviceRow.baseEntityId(),
+                serviceRow.htsVisitGroup(),
+                serviceRow.visitDate(),
+                serviceRow.htsVisitDate(),
+                serviceRow.dateCreated(),
+                serviceRow.providerId(),
+                serviceRow.htsTestingApproach(),
+                serviceRow.htsVisitType(),
+                serviceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                serviceRow.htsPreviousHivstClientType(),
+                serviceRow.htsPreviousHivstTestType(),
+                serviceRow.htsPreviousHivstTestResults(),
+                serviceRow.htsClientType(),
+                serviceRow.htsTestingPoint(),
+                serviceRow.htsTypeOfCounsellingProvided(),
+                serviceRow.htsClientsTbScreeningOutcome(),
+                serviceRow.htsHasPostTestCounsellingBeenProvided(),
+                serviceRow.htsHivResultsDisclosure(),
+                serviceRow.htsWereCondomsDistributed(),
+                serviceRow.htsNumberOfMaleCondomsProvided(),
+                serviceRow.htsNumberOfFemaleCondomsProvided(),
+                serviceRow.htsPreventiveServices(),
+                serviceRow.uniqueId(),
+                serviceRow.firstName(),
+                serviceRow.middleName(),
+                serviceRow.lastName(),
+                serviceRow.phoneNumber(),
+                nationalId,
+                voterId,
+                driverLicense,
+                passport,
+                serviceRow.sex(),
+                serviceRow.birthDate(),
+                serviceRow.maritalStatus(),
+                serviceRow.pregnancyStatus(),
+                serviceRow.hfrCode(),
+                serviceRow.region(),
+                serviceRow.district(),
+                serviceRow.districtCouncil(),
+                serviceRow.ward(),
+                serviceRow.healthFacility(),
+                serviceRow.village(),
+                serviceRow.counsellorName()
         );
     }
 }

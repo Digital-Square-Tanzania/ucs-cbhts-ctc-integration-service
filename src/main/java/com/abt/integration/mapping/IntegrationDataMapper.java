@@ -169,9 +169,10 @@ public class IntegrationDataMapper {
         item.put("testingHistory", mapTestingHistory(serviceRow));
         item.put("currentTesting", mapCurrentTesting(serviceRow));
         item.put("selfTesting", mapSelfTesting(safeTestRows));
-        item.put("reagentTesting", mapReagentTesting(safeTestRows));
+        List<Map<String, Object>> reagentTesting = mapReagentTesting(safeTestRows);
+        item.put("reagentTesting", reagentTesting);
         item.put("preventionServices", mapPreventionServices(serviceRow));
-        item.put("referralAndOutcome", mapReferralAndOutcome(serviceRow));
+        item.put("referralAndOutcome", mapReferralAndOutcome(serviceRow, hasReactiveUnigoldTest(reagentTesting)));
         item.put("remarks", "Generated from cbhts_services event " + serviceRow.eventId());
         item.put("createdAt", toEpochSeconds(serviceRow.dateCreated()));
 
@@ -198,32 +199,27 @@ public class IntegrationDataMapper {
         return normalized;
     }
 
-    private Map<String, Object> mapClientIdentification(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
-        Map<String, Object> clientIdentification = new LinkedHashMap<>();
-
-        String idType;
-        String idValue;
-
+    private Object mapClientIdentification(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
         if (hasText(serviceRow.nationalId())) {
-            idType = "NIDA";
-            idValue = serviceRow.nationalId();
-        } else if (hasText(serviceRow.voterId())) {
-            idType = "VOTER_ID";
-            idValue = serviceRow.voterId();
-        } else if (hasText(serviceRow.driverLicense())) {
-            idType = "DRIVER_LICENSE";
-            idValue = serviceRow.driverLicense();
-        } else if (hasText(serviceRow.passport())) {
-            idType = "PASSPORT";
-            idValue = serviceRow.passport();
-        } else {
-            idType = "OPENSRP_ID";
-            idValue = serviceRow.baseEntityId();
+            return buildClientIdentification("NIDA", serviceRow.nationalId());
+        }
+        if (hasText(serviceRow.voterId())) {
+            return buildClientIdentification("VOTER_ID", serviceRow.voterId());
+        }
+        if (hasText(serviceRow.driverLicense())) {
+            return buildClientIdentification("DRIVER_LICENSE", serviceRow.driverLicense());
+        }
+        if (hasText(serviceRow.passport())) {
+            return buildClientIdentification("PASSPORT", serviceRow.passport());
         }
 
+        return List.of();
+    }
+
+    private Map<String, Object> buildClientIdentification(String idType, String idValue) {
+        Map<String, Object> clientIdentification = new LinkedHashMap<>();
         clientIdentification.put("clientUniqueIdentifierType", idType);
         clientIdentification.put("clientUniqueIdentifierCode", idValue);
-
         return clientIdentification;
     }
 
@@ -408,19 +404,25 @@ public class IntegrationDataMapper {
         return preventionServices;
     }
 
-    private List<Map<String, Object>> mapReferralAndOutcome(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
+    private List<Map<String, Object>> mapReferralAndOutcome(OpenSrpIntegrationRepository.ServiceRow serviceRow,
+                                                            boolean forceCtcClinicReferral) {
         List<Map<String, Object>> referralAndOutcome = new ArrayList<>();
 
-        String referredToCode = DEFAULT_NOT_APPLICABLE_VALUE;
-        for (String preventiveService : splitValues(serviceRow.htsPreventiveServices())) {
-            referredToCode = catalog.mapToIntegrationValue("ReferredToCode", preventiveService, REFERRED_TO_ALIASES, null);
-            if (referredToCode != null) {
-                break;
-            }
-        }
-
-        if (referredToCode == null) {
+        String referredToCode;
+        if (forceCtcClinicReferral) {
+            referredToCode = "CTC_CLINIC";
+        } else {
             referredToCode = DEFAULT_NOT_APPLICABLE_VALUE;
+            for (String preventiveService : splitValues(serviceRow.htsPreventiveServices())) {
+                referredToCode = catalog.mapToIntegrationValue("ReferredToCode", preventiveService, REFERRED_TO_ALIASES, null);
+                if (referredToCode != null) {
+                    break;
+                }
+            }
+
+            if (referredToCode == null) {
+                referredToCode = DEFAULT_NOT_APPLICABLE_VALUE;
+            }
         }
 
         Map<String, Object> referralItem = new LinkedHashMap<>();
@@ -429,6 +431,21 @@ public class IntegrationDataMapper {
         referralAndOutcome.add(referralItem);
 
         return referralAndOutcome;
+    }
+
+    private boolean hasReactiveUnigoldTest(List<Map<String, Object>> reagentTesting) {
+        for (Map<String, Object> reagentTest : reagentTesting) {
+            if (valueMatches(reagentTest.get("testType"), "UNIGOLD")
+                    && valueMatches(reagentTest.get("reagentResult"), "REACTIVE")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean valueMatches(Object value, String expectedValue) {
+        return value != null && expectedValue.equalsIgnoreCase(value.toString().trim());
     }
 
     private String mapKitName(String rawValue) {
@@ -440,6 +457,7 @@ public class IntegrationDataMapper {
         return switch (normalized) {
             case "MULTITEST", "MULTI_TEST", "DUAL", "HIV_SYPHILIS_DUAL", "H_S_DUO" -> "DUAL";
             case "BIOLINE", "SD_BIOLINE" -> "SD_BIOLINE";
+            case "FIRST_RESPONSE", "FIRSTRESPONSE", "FIRST_RESPONSE_HIV_TEST", "FIRST_RESPONSE_HIV" -> "FIRST_RESPONSE";
             case "UNIGOLD" -> "UNIGOLD";
             default -> normalized;
         };

@@ -58,6 +58,14 @@
     "title": "Uni-Gold HIV Test",
     "fields": [
       {
+        "key": "type_of_test_kit_used",
+        "openmrs_entity_parent": "",
+        "openmrs_entity": "concept",
+        "openmrs_entity_id": "type_of_test_kit_used",
+        "type": "hidden",
+        "value": "unigold"
+      },
+      {
         "key": "test_kit_batch_number",
         "openmrs_entity_parent": "",
         "openmrs_entity": "concept",
