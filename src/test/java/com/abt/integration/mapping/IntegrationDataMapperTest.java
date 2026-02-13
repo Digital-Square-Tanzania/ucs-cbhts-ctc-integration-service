@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IntegrationDataMapperTest {
@@ -78,18 +79,18 @@ class IntegrationDataMapperTest {
         );
 
         OpenSrpIntegrationRepository.HivstSelfTestRow hivstSelfTestRow = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-1",
+                "2025-12-20",
                 "base-1",
-                "KIT001",
                 "client",
+                "KIT001",
                 "reactive",
                 "2025-12-20",
                 null,
-                null,
-                null,
-                null,
+                "issue-event-1",
+                "2025-12-20T11:30:15.000+03:00",
                 "BATCH001",
-                null,
-                null
+                "2026-12-31"
         );
 
         Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(reagentTest), List.of(hivstSelfTestRow));
@@ -123,6 +124,9 @@ class IntegrationDataMapperTest {
         assertEquals(1, selfTesting.size());
         assertEquals("KIT001", selfTesting.get(0).get("selfTestKitCode"));
         assertEquals("BATCH001", selfTesting.get(0).get("selfTestBatchNo"));
+        assertEquals("2026-12-31", selfTesting.get(0).get("selfTestExpiryDate"));
+        assertEquals("SELF", selfTesting.get(0).get("selfTestKitName"));
+        assertNotEquals("Client", selfTesting.get(0).get("selfTestKitName"));
         assertEquals("REACTIVE", selfTesting.get(0).get("selfTestingResults"));
 
         List<Map<String, Object>> reagentTesting = (List<Map<String, Object>>) mapped.get("reagentTesting");
@@ -146,33 +150,33 @@ class IntegrationDataMapperTest {
         OpenSrpIntegrationRepository.ServiceRow serviceRow = buildServiceRow("Single");
 
         OpenSrpIntegrationRepository.HivstSelfTestRow clientResult = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-1",
+                "2025-12-20",
                 "base-1",
-                "KIT-CLIENT",
                 "client",
+                "KIT-CLIENT",
                 "reactive",
                 "2025-12-20",
                 null,
-                null,
-                null,
-                null,
+                "issue-event-1",
+                "2025-12-20T00:15:00+03:00",
                 "CLIENT-BATCH",
-                "PEER-BATCH",
-                "PARTNER-BATCH"
+                "2027-01-11"
         );
 
         OpenSrpIntegrationRepository.HivstSelfTestRow peerResult = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-2",
+                "2025-12-20",
                 "base-1",
-                "KIT-PEER",
                 "peer_friend",
+                "KIT-PEER",
                 "non_reactive",
                 "2025-12-20",
                 null,
-                null,
-                null,
-                null,
-                "CLIENT-BATCH",
+                "issue-event-2",
+                "2025-12-20T23:59:59+03:00",
                 "PEER-BATCH",
-                "PARTNER-BATCH"
+                "2027-03-01"
         );
 
         Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(), List.of(clientResult, peerResult));
@@ -181,6 +185,79 @@ class IntegrationDataMapperTest {
         assertEquals(2, selfTesting.size());
         assertEquals("CLIENT-BATCH", selfTesting.get(0).get("selfTestBatchNo"));
         assertEquals("PEER-BATCH", selfTesting.get(1).get("selfTestBatchNo"));
+        assertEquals("2027-01-11", selfTesting.get(0).get("selfTestExpiryDate"));
+        assertEquals("2027-03-01", selfTesting.get(1).get("selfTestExpiryDate"));
+        assertEquals("SELF", selfTesting.get(0).get("selfTestKitName"));
+        assertEquals("PEER_FRIEND", selfTesting.get(1).get("selfTestKitName"));
+        assertNotEquals("Client", selfTesting.get(0).get("selfTestKitName"));
+        assertNotEquals("Peer Friend", selfTesting.get(1).get("selfTestKitName"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldMapSelfTestKitNameToIntegrationValuesOnly() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = buildServiceRow("Single");
+
+        OpenSrpIntegrationRepository.HivstSelfTestRow selfRow = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-self",
+                "2025-12-20",
+                "base-1",
+                "client",
+                "KIT-SELF",
+                "reactive",
+                "2025-12-20",
+                null,
+                "issue-event-self",
+                "2025-12-20T10:00:00+03:00",
+                "BATCH-SELF",
+                "2027-01-11"
+        );
+
+        OpenSrpIntegrationRepository.HivstSelfTestRow sexualPartnerRow = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-sp",
+                "2025-12-20",
+                "base-1",
+                "sexual_partner",
+                "KIT-SP",
+                "reactive",
+                "2025-12-20",
+                null,
+                "issue-event-sp",
+                "2025-12-20T11:00:00+03:00",
+                "BATCH-SP",
+                "2027-01-11"
+        );
+
+        OpenSrpIntegrationRepository.HivstSelfTestRow peerFriendTypoRow = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-pf",
+                "2025-12-20",
+                "base-1",
+                "peer_fried",
+                "KIT-PF",
+                "reactive",
+                "2025-12-20",
+                null,
+                "issue-event-pf",
+                "2025-12-20T12:00:00+03:00",
+                "BATCH-PF",
+                "2027-01-11"
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(
+                serviceRow,
+                List.of(),
+                List.of(selfRow, sexualPartnerRow, peerFriendTypoRow)
+        );
+        List<Map<String, Object>> selfTesting = (List<Map<String, Object>>) mapped.get("selfTesting");
+
+        assertEquals(3, selfTesting.size());
+        assertEquals("SELF", selfTesting.get(0).get("selfTestKitName"));
+        assertEquals("SEXUAL_PARTNER", selfTesting.get(1).get("selfTestKitName"));
+        assertEquals("PEER_FRIEND", selfTesting.get(2).get("selfTestKitName"));
+
+        assertNotEquals("Client", selfTesting.get(0).get("selfTestKitName"));
+        assertNotEquals("Sexual Partner", selfTesting.get(1).get("selfTestKitName"));
+        assertNotEquals("Peer Friend", selfTesting.get(2).get("selfTestKitName"));
     }
 
     @SuppressWarnings("unchecked")
@@ -189,24 +266,77 @@ class IntegrationDataMapperTest {
         OpenSrpIntegrationRepository.ServiceRow serviceRow = buildServiceRow("Single");
 
         OpenSrpIntegrationRepository.HivstSelfTestRow differentDay = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-3",
+                "2025-12-21",
                 "base-1",
-                "KIT-CLIENT",
                 "client",
+                "KIT-CLIENT",
                 "reactive",
                 "2025-12-21",
                 null,
-                null,
-                null,
-                null,
+                "issue-event-3",
+                "2025-12-21T01:00:00+03:00",
                 "CLIENT-BATCH",
-                null,
-                null
+                "2027-01-11"
         );
 
         Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(), List.of(differentDay));
         List<Map<String, Object>> selfTesting = (List<Map<String, Object>>) mapped.get("selfTesting");
 
         assertEquals(0, selfTesting.size());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldSkipSelfTestingWhenVisitDateOrIssueEventDateIsMissing() {
+        OpenSrpIntegrationRepository.ServiceRow baseServiceRow = buildServiceRow("Single");
+        OpenSrpIntegrationRepository.ServiceRow missingVisitDateServiceRow = withVisitDate(baseServiceRow, null);
+
+        OpenSrpIntegrationRepository.HivstSelfTestRow validIssueDate = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-4",
+                "2025-12-20",
+                "base-1",
+                "client",
+                "KIT-CLIENT",
+                "reactive",
+                "2025-12-20",
+                null,
+                "issue-event-4",
+                "2025-12-20T11:30:15.000+03:00",
+                "CLIENT-BATCH",
+                "2027-01-11"
+        );
+
+        Map<String, Object> missingVisitDateMapped = mapper.mapServiceRow(
+                missingVisitDateServiceRow,
+                List.of(),
+                List.of(validIssueDate)
+        );
+        List<Map<String, Object>> missingVisitDateSelfTesting = (List<Map<String, Object>>) missingVisitDateMapped.get("selfTesting");
+        assertEquals(0, missingVisitDateSelfTesting.size());
+
+        OpenSrpIntegrationRepository.HivstSelfTestRow blankIssueDate = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-5",
+                "2025-12-20",
+                "base-1",
+                "client",
+                "KIT-CLIENT",
+                "reactive",
+                "2025-12-20",
+                null,
+                "issue-event-5",
+                "   ",
+                "CLIENT-BATCH",
+                "2027-01-11"
+        );
+
+        Map<String, Object> blankIssueDateMapped = mapper.mapServiceRow(
+                baseServiceRow,
+                List.of(),
+                List.of(blankIssueDate)
+        );
+        List<Map<String, Object>> blankIssueDateSelfTesting = (List<Map<String, Object>>) blankIssueDateMapped.get("selfTesting");
+        assertEquals(0, blankIssueDateSelfTesting.size());
     }
 
     @SuppressWarnings("unchecked")
@@ -775,6 +905,58 @@ class IntegrationDataMapperTest {
                 voterId,
                 driverLicense,
                 passport,
+                serviceRow.sex(),
+                serviceRow.birthDate(),
+                serviceRow.maritalStatus(),
+                serviceRow.pregnancyStatus(),
+                serviceRow.hfrCode(),
+                serviceRow.region(),
+                serviceRow.district(),
+                serviceRow.districtCouncil(),
+                serviceRow.ward(),
+                serviceRow.healthFacility(),
+                serviceRow.village(),
+                serviceRow.counsellorName()
+        );
+    }
+
+    private OpenSrpIntegrationRepository.ServiceRow withVisitDate(
+            OpenSrpIntegrationRepository.ServiceRow serviceRow,
+            String visitDate
+    ) {
+        return new OpenSrpIntegrationRepository.ServiceRow(
+                serviceRow.eventId(),
+                serviceRow.baseEntityId(),
+                serviceRow.htsVisitGroup(),
+                visitDate,
+                serviceRow.htsVisitDate(),
+                serviceRow.dateCreated(),
+                serviceRow.providerId(),
+                serviceRow.htsTestingApproach(),
+                serviceRow.htsVisitType(),
+                serviceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                serviceRow.htsPreviousHivstClientType(),
+                serviceRow.htsPreviousHivstTestType(),
+                serviceRow.htsPreviousHivstTestResults(),
+                serviceRow.htsClientType(),
+                serviceRow.htsTestingPoint(),
+                serviceRow.htsTypeOfCounsellingProvided(),
+                serviceRow.htsClientsTbScreeningOutcome(),
+                serviceRow.htsHasPostTestCounsellingBeenProvided(),
+                serviceRow.htsHivResultsDisclosure(),
+                serviceRow.htsWereCondomsDistributed(),
+                serviceRow.htsNumberOfMaleCondomsProvided(),
+                serviceRow.htsNumberOfFemaleCondomsProvided(),
+                serviceRow.htsPreventiveServices(),
+                serviceRow.uniqueId(),
+                serviceRow.firstName(),
+                serviceRow.middleName(),
+                serviceRow.lastName(),
+                serviceRow.phoneNumber(),
+                serviceRow.nationalId(),
+                serviceRow.voterId(),
+                serviceRow.driverLicense(),
+                serviceRow.passport(),
                 serviceRow.sex(),
                 serviceRow.birthDate(),
                 serviceRow.maritalStatus(),
