@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -87,6 +88,54 @@ class OpenSrpIntegrationRepositoryTest {
         assertEquals("KIT-SP", row.resultKitCode());
         assertEquals("BATCH-SP", row.kitBatchNumber());
         assertEquals("2027-01-11", row.kitExpiryDate());
+    }
+
+    @Test
+    void findEnrollmentEligibilityByBaseEntity_shouldQueryEnrollmentTableInBulk() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        when(connection.prepareStatement(sqlCaptor.capture())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(false);
+
+        repository.findEnrollmentEligibilityByBaseEntity(connection, List.of(buildServiceRow("base-1")));
+
+        String sql = sqlCaptor.getValue();
+        assertTrue(sql.contains("FROM public.cbhts_enrollment e"));
+        assertTrue(sql.contains("WHERE e.base_entity_id IN ("));
+        assertTrue(sql.contains("ORDER BY e.base_entity_id ASC, e.date_created DESC NULLS LAST, e.event_id DESC"));
+    }
+
+    @Test
+    void findEnrollmentEligibilityByBaseEntity_shouldMapAndDefaultEligibilityValues() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        when(connection.prepareStatement(org.mockito.ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true, true, true, true, false);
+        when(resultSet.getString("base_entity_id"))
+                .thenReturn("base-1", "base-1", "base-2", "base-3");
+        when(resultSet.getString("eligibility_for_testing"))
+                .thenReturn("no", "yes", "yes", null);
+
+        Map<String, Boolean> mapped = repository.findEnrollmentEligibilityByBaseEntity(
+                connection,
+                List.of(buildServiceRow("base-1"), buildServiceRow("base-2"), buildServiceRow("base-3"))
+        );
+
+        assertEquals(3, mapped.size());
+        assertFalse(mapped.get("base-1"));
+        assertTrue(mapped.get("base-2"));
+        assertTrue(mapped.get("base-3"));
     }
 
     private OpenSrpIntegrationRepository.ServiceRow buildServiceRow(String baseEntityId) {

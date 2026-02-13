@@ -59,12 +59,20 @@ public class OpenSrpIntegrationService implements IntegrationEndpointService {
                     ? Map.of()
                     : repository.findHivstTestByBaseEntity(connection, serviceRows);
 
+            Map<String, Boolean> enrollmentEligibilityByBaseEntity = serviceRows.isEmpty()
+                    ? Map.of()
+                    : repository.findEnrollmentEligibilityByBaseEntity(connection, serviceRows);
+            if (enrollmentEligibilityByBaseEntity == null) {
+                enrollmentEligibilityByBaseEntity = Map.of();
+            }
+
             List<Map<String, Object>> data = new ArrayList<>();
             for (OpenSrpIntegrationRepository.ServiceRow serviceRow : serviceRows) {
                 String key = OpenSrpIntegrationRepository.serviceKey(serviceRow);
                 List<OpenSrpIntegrationRepository.TestRow> tests = testsByKey.getOrDefault(key, List.of());
                 List<OpenSrpIntegrationRepository.HivstSelfTestRow> hivstRows = hivstRowsByBaseEntity.getOrDefault(serviceRow.baseEntityId(), List.of());
-                data.add(dataMapper.mapServiceRow(serviceRow, tests, hivstRows));
+                Boolean enrollmentEligibility = enrollmentEligibilityByBaseEntity.get(serviceRow.baseEntityId());
+                data.add(dataMapper.mapServiceRow(serviceRow, tests, hivstRows, enrollmentEligibility));
             }
 
             Map<String, Object> response = new LinkedHashMap<>();

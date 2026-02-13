@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -312,6 +313,47 @@ public class OpenSrpIntegrationRepository {
         return findHivstTestByBaseEntity(connection, serviceRows);
     }
 
+    public Map<String, Boolean> findEnrollmentEligibilityByBaseEntity(Connection connection,
+                                                                      List<ServiceRow> serviceRows) throws SQLException {
+        Set<String> baseEntityIds = new HashSet<>();
+        for (ServiceRow serviceRow : serviceRows) {
+            if (hasText(serviceRow.baseEntityId())) {
+                baseEntityIds.add(serviceRow.baseEntityId());
+            }
+        }
+
+        if (baseEntityIds.isEmpty()) {
+            return Map.of();
+        }
+
+        String sql = "SELECT e.base_entity_id, e.eligibility_for_testing, e.date_created, e.event_id " +
+                "FROM " + schema + ".cbhts_enrollment e " +
+                "WHERE e.base_entity_id IN (" + placeholders(baseEntityIds.size()) + ") " +
+                "ORDER BY e.base_entity_id ASC, e.date_created DESC NULLS LAST, e.event_id DESC";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int index = 1;
+            for (String baseEntityId : baseEntityIds) {
+                statement.setString(index++, baseEntityId);
+            }
+
+            Map<String, Boolean> eligibilityByBaseEntity = new HashMap<>();
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String baseEntityId = resultSet.getString("base_entity_id");
+                    if (!hasText(baseEntityId) || eligibilityByBaseEntity.containsKey(baseEntityId)) {
+                        continue;
+                    }
+
+                    String eligibility = resultSet.getString("eligibility_for_testing");
+                    eligibilityByBaseEntity.put(baseEntityId, parseEnrollmentEligibility(eligibility));
+                }
+            }
+
+            return eligibilityByBaseEntity;
+        }
+    }
+
     public static String serviceKey(ServiceRow serviceRow) {
         return testKey(serviceRow.htsVisitGroup(), serviceRow.baseEntityId());
     }
@@ -342,6 +384,36 @@ public class OpenSrpIntegrationRepository {
 
     private static boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private static boolean parseEnrollmentEligibility(String value) {
+        if (!hasText(value)) {
+            return true;
+        }
+
+        String normalized = value.trim()
+                .replace('-', '_')
+                .replace(' ', '_')
+                .toUpperCase(Locale.ROOT);
+
+        if (normalized.equals("YES")
+                || normalized.equals("TRUE")
+                || normalized.equals("1")
+                || normalized.equals("N")
+                || normalized.equals("Y")
+                || normalized.equals("NDIYO")) {
+            return true;
+        }
+
+        if (normalized.equals("NO")
+                || normalized.equals("FALSE")
+                || normalized.equals("0")
+                || normalized.equals("H")
+                || normalized.equals("HAPANA")) {
+            return false;
+        }
+
+        return true;
     }
 
     public record ServiceRow(

@@ -64,12 +64,6 @@ public class IntegrationDataMapper {
             "verification_visit", "VERIFICATION_VISIT"
     );
 
-    private static final Map<String, String> PREVIOUS_CLIENT_TYPE_ALIASES = aliases(
-            "self", "SELF",
-            "sexual_partner", "SEXUAL_PARTNER",
-            "peer_friend", "PEER_FRIEND"
-    );
-
     private static final Map<String, String> TESTING_TYPE_ALIASES = aliases(
             "sto", "SELF_TEST_ORAL",
             "stb", "SELF_TEST_BLOOD",
@@ -152,12 +146,19 @@ public class IntegrationDataMapper {
 
     public Map<String, Object> mapServiceRow(OpenSrpIntegrationRepository.ServiceRow serviceRow,
                                              List<OpenSrpIntegrationRepository.TestRow> testRows) {
-        return mapServiceRow(serviceRow, testRows, List.of());
+        return mapServiceRow(serviceRow, testRows, List.of(), null);
     }
 
     public Map<String, Object> mapServiceRow(OpenSrpIntegrationRepository.ServiceRow serviceRow,
                                              List<OpenSrpIntegrationRepository.TestRow> testRows,
                                              List<OpenSrpIntegrationRepository.HivstSelfTestRow> hivstSelfTestRows) {
+        return mapServiceRow(serviceRow, testRows, hivstSelfTestRows, null);
+    }
+
+    public Map<String, Object> mapServiceRow(OpenSrpIntegrationRepository.ServiceRow serviceRow,
+                                             List<OpenSrpIntegrationRepository.TestRow> testRows,
+                                             List<OpenSrpIntegrationRepository.HivstSelfTestRow> hivstSelfTestRows,
+                                             Boolean enrollmentEligibility) {
         List<OpenSrpIntegrationRepository.TestRow> safeTestRows = testRows == null ? List.of() : testRows;
         List<OpenSrpIntegrationRepository.HivstSelfTestRow> safeHivstSelfTestRows = hivstSelfTestRows == null ? List.of() : hivstSelfTestRows;
 
@@ -172,7 +173,7 @@ public class IntegrationDataMapper {
         item.put("clientName", mapClientName(serviceRow));
         item.put("demographics", mapDemographics(serviceRow));
         item.put("residence", mapResidence(serviceRow));
-        item.put("clientClassification", mapClientClassification(serviceRow));
+        item.put("clientClassification", mapClientClassification(serviceRow, enrollmentEligibility));
         item.put("testingHistory", mapTestingHistory(serviceRow));
         item.put("currentTesting", mapCurrentTesting(serviceRow));
         item.put("selfTesting", mapSelfTesting(serviceRow, safeHivstSelfTestRows));
@@ -273,14 +274,11 @@ public class IntegrationDataMapper {
         return residence;
     }
 
-    private Map<String, Object> mapClientClassification(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
+    private Map<String, Object> mapClientClassification(OpenSrpIntegrationRepository.ServiceRow serviceRow,
+                                                        Boolean enrollmentEligibility) {
         Map<String, Object> clientClassification = new LinkedHashMap<>();
 
-        clientClassification.put("previousTestClientType", catalog.mapToIntegrationValue(
-                "PreviousTestClientType",
-                serviceRow.htsPreviousHivstClientType(),
-                PREVIOUS_CLIENT_TYPE_ALIASES,
-                DEFAULT_NOT_APPLICABLE_VALUE));
+        clientClassification.put("previousTestClientType", mapPreviousTestClientType(serviceRow.htsPreviousHivstClientType()));
 
         String clientTypeValue = catalog.mapToIntegrationValue("ClientType", serviceRow.htsClientType(), CLIENT_TYPE_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE);
         clientClassification.put("clientType", clientTypeValue);
@@ -294,10 +292,19 @@ public class IntegrationDataMapper {
         clientClassification.put("relationshipIndexClient",
                 "INDEX_CONTACT".equals(clientTypeValue) ? "SEXUAL_PARTNER" : DEFAULT_NOT_APPLICABLE_VALUE);
 
-        boolean recentlySelfTested = toBoolean(serviceRow.htsHasTheClientRecentlyTestedWithHivst());
-        clientClassification.put("eligibleForTesting", !recentlySelfTested);
+        clientClassification.put("eligibleForTesting", enrollmentEligibility == null ? true : enrollmentEligibility);
 
         return clientClassification;
+    }
+
+    private String mapPreviousTestClientType(String rawValue) {
+        String normalized = MappingReferenceCatalog.normalize(rawValue);
+        return switch (normalized) {
+            case "SELF" -> "SELF";
+            case "SEXUAL_PARTNER" -> "SEXUAL_PARTNER";
+            case "PEER_FRIEND" -> "PEER_FRIEND";
+            default -> DEFAULT_NOT_APPLICABLE_VALUE;
+        };
     }
 
     private Map<String, Object> mapTestingHistory(OpenSrpIntegrationRepository.ServiceRow serviceRow) {

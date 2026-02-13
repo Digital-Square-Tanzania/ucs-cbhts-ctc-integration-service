@@ -117,6 +117,8 @@ class OpenSrpIntegrationServiceTest {
                 .thenReturn(Map.of(OpenSrpIntegrationRepository.serviceKey(serviceRow), List.of(testRow)));
         when(repository.findHivstTestByBaseEntity(connection, List.of(serviceRow)))
                 .thenReturn(Map.of());
+        when(repository.findEnrollmentEligibilityByBaseEntity(connection, List.of(serviceRow)))
+                .thenReturn(Map.of());
 
         Map<String, Object> response = service.fetch(request);
 
@@ -127,11 +129,14 @@ class OpenSrpIntegrationServiceTest {
         List<Map<String, Object>> data = (List<Map<String, Object>>) response.get("data");
         assertEquals(1, data.size());
         assertEquals("CBHTS", data.get(0).get("htcApproach"));
+        Map<String, Object> clientClassification = (Map<String, Object>) data.get(0).get("clientClassification");
+        assertEquals(true, clientClassification.get("eligibleForTesting"));
 
         verify(repository).countServices(connection, request);
         verify(repository).findServices(connection, request);
         verify(repository).findTestsForServices(connection, List.of(serviceRow), 1768262400L, 1768262800L);
         verify(repository).findHivstTestByBaseEntity(connection, List.of(serviceRow));
+        verify(repository).findEnrollmentEligibilityByBaseEntity(connection, List.of(serviceRow));
     }
 
     @SuppressWarnings("unchecked")
@@ -233,12 +238,16 @@ class OpenSrpIntegrationServiceTest {
                 .thenReturn(Map.of(OpenSrpIntegrationRepository.serviceKey(serviceRow), List.of(reagentTestRow)));
         when(repository.findHivstTestByBaseEntity(connection, List.of(serviceRow)))
                 .thenReturn(Map.of("base-2", List.of(nonMatchingHivstRow)));
+        when(repository.findEnrollmentEligibilityByBaseEntity(connection, List.of(serviceRow)))
+                .thenReturn(Map.of("base-1", false));
 
         Map<String, Object> response = service.fetch(request);
 
         List<Map<String, Object>> data = (List<Map<String, Object>>) response.get("data");
         List<Map<String, Object>> selfTesting = (List<Map<String, Object>>) data.get(0).get("selfTesting");
         assertEquals(0, selfTesting.size());
+        Map<String, Object> clientClassification = (Map<String, Object>) data.get(0).get("clientClassification");
+        assertEquals(false, clientClassification.get("eligibleForTesting"));
     }
 
     @Test
