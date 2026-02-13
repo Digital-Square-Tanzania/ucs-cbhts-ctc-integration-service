@@ -357,7 +357,7 @@ class IntegrationDataMapperTest {
                 "2026-01-01",
                 "non_reactive",
                 null,
-                "Unigold HIV Test",
+                "Unigold HIV Test Result",
                 1768262803000L
         );
 
