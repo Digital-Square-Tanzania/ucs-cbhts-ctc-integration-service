@@ -227,8 +227,8 @@ public class OpenSrpIntegrationRepository {
         }
     }
 
-    public Map<String, List<HivstSelfTestRow>> findHivstSelfTestsByBaseEntity(Connection connection,
-                                                                               List<ServiceRow> serviceRows) throws SQLException {
+    public Map<String, List<HivstSelfTestRow>> findHivstTestByBaseEntity(Connection connection,
+                                                                          List<ServiceRow> serviceRows) throws SQLException {
         Set<String> baseEntityIds = new HashSet<>();
         for (ServiceRow serviceRow : serviceRows) {
             if (hasText(serviceRow.baseEntityId())) {
@@ -241,13 +241,35 @@ public class OpenSrpIntegrationRepository {
         }
 
         String sql = "SELECT " +
-                "k.base_entity_id, k.kit_code, k.event_date AS issue_event_date, k.collection_date AS issue_collection_date, " +
-                "k.client_kit_batch_number, k.peer_friend_kit_batch_number, k.sexual_partner_kit_batch_number, " +
-                "r.kit_for, r.hivst_result, r.event_date AS result_event_date, r.collection_date AS result_collection_date, r.result_date " +
-                "FROM " + schema + ".hivst_issue_kits k " +
-                "JOIN " + schema + ".hivst_results r ON k.kit_code = r.kit_code AND k.base_entity_id = r.base_entity_id " +
-                "WHERE k.base_entity_id IN (" + placeholders(baseEntityIds.size()) + ") " +
-                "ORDER BY k.base_entity_id ASC, r.result_date ASC, r.event_id ASC";
+                "r.event_id AS result_event_id, " +
+                "r.event_date AS result_event_date, " +
+                "r.base_entity_id, " +
+                "r.kit_for, " +
+                "r.kit_code AS result_kit_code, " +
+                "r.hivst_result, " +
+                "r.result_date, " +
+                "r.register_to_hts, " +
+                "k.event_id AS issue_event_id, " +
+                "k.event_date AS issue_event_date, " +
+                "CASE " +
+                "    WHEN r.kit_for = 'client' THEN k.client_kit_batch_number " +
+                "    WHEN r.kit_for = 'sexual_partner' THEN k.sexual_partner_kit_batch_number " +
+                "    WHEN r.kit_for IN ('peer_friend','peer_fried') THEN k.peer_friend_kit_batch_number " +
+                "END AS kit_batch_number, " +
+                "CASE " +
+                "    WHEN r.kit_for = 'client' THEN k.client_kit_expiry_date " +
+                "    WHEN r.kit_for = 'sexual_partner' THEN k.sexual_partner_kit_expiry_date " +
+                "    WHEN r.kit_for IN ('peer_friend','peer_fried') THEN k.peer_friend_kit_expiry_date " +
+                "END AS kit_expiry_date " +
+                "FROM " + schema + ".hivst_results r " +
+                "JOIN " + schema + ".hivst_issue_kits k ON k.base_entity_id = r.base_entity_id " +
+                "AND r.kit_code = CASE " +
+                "    WHEN r.kit_for = 'client' THEN k.kit_code " +
+                "    WHEN r.kit_for = 'sexual_partner' THEN k.sexual_partner_kit_code " +
+                "    WHEN r.kit_for IN ('peer_friend','peer_fried') THEN k.peer_friend_kit_code " +
+                "END " +
+                "WHERE r.base_entity_id IN (" + placeholders(baseEntityIds.size()) + ") " +
+                "ORDER BY r.base_entity_id ASC, r.result_date ASC, r.event_id ASC";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             int index = 1;
@@ -259,18 +281,18 @@ public class OpenSrpIntegrationRepository {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     HivstSelfTestRow row = new HivstSelfTestRow(
+                            resultSet.getString("result_event_id"),
+                            resultSet.getString("result_event_date"),
                             resultSet.getString("base_entity_id"),
-                            resultSet.getString("kit_code"),
                             resultSet.getString("kit_for"),
+                            resultSet.getString("result_kit_code"),
                             resultSet.getString("hivst_result"),
                             resultSet.getString("result_date"),
-                            resultSet.getString("result_collection_date"),
-                            resultSet.getString("result_event_date"),
-                            resultSet.getString("issue_collection_date"),
+                            resultSet.getString("register_to_hts"),
+                            resultSet.getString("issue_event_id"),
                             resultSet.getString("issue_event_date"),
-                            resultSet.getString("client_kit_batch_number"),
-                            resultSet.getString("peer_friend_kit_batch_number"),
-                            resultSet.getString("sexual_partner_kit_batch_number")
+                            resultSet.getString("kit_batch_number"),
+                            resultSet.getString("kit_expiry_date")
                     );
 
                     if (!hasText(row.baseEntityId())) {
@@ -283,6 +305,11 @@ public class OpenSrpIntegrationRepository {
 
             return rowsByBaseEntity;
         }
+    }
+
+    public Map<String, List<HivstSelfTestRow>> findHivstSelfTestsByBaseEntity(Connection connection,
+                                                                               List<ServiceRow> serviceRows) throws SQLException {
+        return findHivstTestByBaseEntity(connection, serviceRows);
     }
 
     public static String serviceKey(ServiceRow serviceRow) {
@@ -380,18 +407,18 @@ public class OpenSrpIntegrationRepository {
     }
 
     public record HivstSelfTestRow(
+            String resultEventId,
+            String resultEventDate,
             String baseEntityId,
-            String kitCode,
             String kitFor,
+            String resultKitCode,
             String hivstResult,
             String resultDate,
-            String resultCollectionDate,
-            String resultEventDate,
-            String issueCollectionDate,
+            String registerToHts,
+            String issueEventId,
             String issueEventDate,
-            String clientKitBatchNumber,
-            String peerFriendKitBatchNumber,
-            String sexualPartnerKitBatchNumber
+            String kitBatchNumber,
+            String kitExpiryDate
     ) {
     }
 }

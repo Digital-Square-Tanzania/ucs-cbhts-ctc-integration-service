@@ -363,30 +363,20 @@ public class IntegrationDataMapper {
     private List<Map<String, Object>> mapSelfTesting(OpenSrpIntegrationRepository.ServiceRow serviceRow,
                                                      List<OpenSrpIntegrationRepository.HivstSelfTestRow> hivstSelfTestRows) {
         List<Map<String, Object>> selfTesting = new ArrayList<>();
-        String serviceDate = normalizeDate(firstNonBlank(
-                serviceRow.htsVisitDate(),
-                serviceRow.visitDate(),
-                Long.toString(serviceRow.dateCreated())
-        ));
+        LocalDate serviceDate = parseLocalDate(serviceRow.visitDate());
 
         for (OpenSrpIntegrationRepository.HivstSelfTestRow hivstSelfTestRow : hivstSelfTestRows) {
-            String hivstDate = normalizeDate(firstNonBlank(
-                    hivstSelfTestRow.resultDate(),
-                    hivstSelfTestRow.resultCollectionDate(),
-                    hivstSelfTestRow.resultEventDate(),
-                    hivstSelfTestRow.issueCollectionDate(),
-                    hivstSelfTestRow.issueEventDate()
-            ));
+            LocalDate hivstDate = parseLocalDate(hivstSelfTestRow.issueEventDate());
 
-            if (!hasText(serviceDate) || !hasText(hivstDate) || !serviceDate.equals(hivstDate)) {
+            if (serviceDate == null || hivstDate == null || !serviceDate.isEqual(hivstDate)) {
                 continue;
             }
 
             Map<String, Object> testItem = new LinkedHashMap<>();
-            testItem.put("selfTestKitCode", firstNonBlank(hivstSelfTestRow.kitCode(), hivstSelfTestRow.kitFor()));
-            testItem.put("selfTestBatchNo", resolveHivstBatchNo(hivstSelfTestRow));
-            testItem.put("selfTestExpiryDate", null);
-            testItem.put("selfTestKitName", prettifyName(firstNonBlank(hivstSelfTestRow.kitFor(), hivstSelfTestRow.kitCode())));
+            testItem.put("selfTestKitCode", firstNonBlank(hivstSelfTestRow.resultKitCode(), hivstSelfTestRow.kitFor()));
+            testItem.put("selfTestBatchNo", hivstSelfTestRow.kitBatchNumber());
+            testItem.put("selfTestExpiryDate", normalizeDate(hivstSelfTestRow.kitExpiryDate()));
+            testItem.put("selfTestKitName", mapSelfTestKitName(hivstSelfTestRow.kitFor()));
             testItem.put("selfTestingResults", catalog.mapToIntegrationValue(
                     "PreviousTestResult",
                     hivstSelfTestRow.hivstResult(),
@@ -399,29 +389,15 @@ public class IntegrationDataMapper {
         return selfTesting;
     }
 
-    private String resolveHivstBatchNo(OpenSrpIntegrationRepository.HivstSelfTestRow hivstSelfTestRow) {
-        String normalizedKitFor = MappingReferenceCatalog.normalize(hivstSelfTestRow.kitFor());
-        if (normalizedKitFor.contains("SEXUAL_PARTNER")) {
-            return firstNonBlank(
-                    hivstSelfTestRow.sexualPartnerKitBatchNumber(),
-                    hivstSelfTestRow.clientKitBatchNumber(),
-                    hivstSelfTestRow.peerFriendKitBatchNumber()
-            );
+    private String mapSelfTestKitName(String kitFor) {
+        String normalized = MappingReferenceCatalog.normalize(kitFor);
+        if (normalized.contains("SEXUAL_PARTNER")) {
+            return "SEXUAL_PARTNER";
         }
-
-        if (normalizedKitFor.contains("PEER_FRIEND")) {
-            return firstNonBlank(
-                    hivstSelfTestRow.peerFriendKitBatchNumber(),
-                    hivstSelfTestRow.clientKitBatchNumber(),
-                    hivstSelfTestRow.sexualPartnerKitBatchNumber()
-            );
+        if (normalized.contains("PEER_FRIEND") || normalized.contains("PEER_FRIED")) {
+            return "PEER_FRIEND";
         }
-
-        return firstNonBlank(
-                hivstSelfTestRow.clientKitBatchNumber(),
-                hivstSelfTestRow.peerFriendKitBatchNumber(),
-                hivstSelfTestRow.sexualPartnerKitBatchNumber()
-        );
+        return "SELF";
     }
 
     private List<Map<String, Object>> mapReagentTesting(List<OpenSrpIntegrationRepository.TestRow> tests) {
@@ -596,13 +572,25 @@ public class IntegrationDataMapper {
             return null;
         }
 
+        LocalDate parsedDate = parseLocalDate(rawValue);
+        if (parsedDate != null) {
+            return parsedDate.toString();
+        }
+
+        return rawValue.trim();
+    }
+
+    private LocalDate parseLocalDate(String rawValue) {
+        if (isBlank(rawValue)) {
+            return null;
+        }
+
         String trimmed = rawValue.trim();
 
         if (trimmed.matches("^-?\\d+$")) {
             long epoch = Long.parseLong(trimmed);
             return LocalDateTime.ofInstant(Instant.ofEpochSecond(toEpochSeconds(epoch)), ZoneOffset.UTC)
-                    .toLocalDate()
-                    .toString();
+                    .toLocalDate();
         }
 
         List<DateTimeFormatter> localDateFormatters = List.of(
@@ -612,14 +600,14 @@ public class IntegrationDataMapper {
 
         for (DateTimeFormatter formatter : localDateFormatters) {
             try {
-                LocalDate date = LocalDate.parse(trimmed, formatter);
-                return date.toString();
+                return LocalDate.parse(trimmed, formatter);
             } catch (DateTimeParseException ignored) {
             }
         }
 
         List<DateTimeFormatter> localDateTimeFormatters = List.of(
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
         );
@@ -627,13 +615,17 @@ public class IntegrationDataMapper {
         for (DateTimeFormatter formatter : localDateTimeFormatters) {
             try {
                 LocalDateTime dateTime = LocalDateTime.parse(trimmed, formatter);
-                return dateTime.toLocalDate().toString();
+                return dateTime.toLocalDate();
             } catch (DateTimeParseException ignored) {
             }
         }
 
         List<DateTimeFormatter> offsetFormatters = List.of(
                 DateTimeFormatter.ISO_OFFSET_DATE_TIME,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssXXX"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSX"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSXXX"),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX"),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
         );
@@ -641,17 +633,17 @@ public class IntegrationDataMapper {
         for (DateTimeFormatter formatter : offsetFormatters) {
             try {
                 OffsetDateTime offsetDateTime = OffsetDateTime.parse(trimmed, formatter);
-                return offsetDateTime.toLocalDate().toString();
+                return offsetDateTime.toLocalDate();
             } catch (DateTimeParseException ignored) {
             }
         }
 
         try {
-            return OffsetDateTime.parse(trimmed).toLocalDate().toString();
+            return OffsetDateTime.parse(trimmed).toLocalDate();
         } catch (DateTimeParseException ignored) {
         }
 
-        return trimmed;
+        return null;
     }
 
     private long toEpochSeconds(long rawTimestamp) {

@@ -57,7 +57,7 @@ public class OpenSrpIntegrationService implements IntegrationEndpointService {
 
             Map<String, List<OpenSrpIntegrationRepository.HivstSelfTestRow>> hivstRowsByBaseEntity = serviceRows.isEmpty()
                     ? Map.of()
-                    : repository.findHivstSelfTestsByBaseEntity(connection, serviceRows);
+                    : repository.findHivstTestByBaseEntity(connection, serviceRows);
 
             List<Map<String, Object>> data = new ArrayList<>();
             for (OpenSrpIntegrationRepository.ServiceRow serviceRow : serviceRows) {
