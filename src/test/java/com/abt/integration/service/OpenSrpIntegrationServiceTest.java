@@ -115,7 +115,7 @@ class OpenSrpIntegrationServiceTest {
         when(repository.findServices(connection, request)).thenReturn(List.of(serviceRow));
         when(repository.findTestsForServices(connection, List.of(serviceRow), 1768262400L, 1768262800L))
                 .thenReturn(Map.of(OpenSrpIntegrationRepository.serviceKey(serviceRow), List.of(testRow)));
-        when(repository.findHivstSelfTestsByBaseEntity(connection, List.of(serviceRow)))
+        when(repository.findHivstTestByBaseEntity(connection, List.of(serviceRow)))
                 .thenReturn(Map.of());
 
         Map<String, Object> response = service.fetch(request);
@@ -131,7 +131,7 @@ class OpenSrpIntegrationServiceTest {
         verify(repository).countServices(connection, request);
         verify(repository).findServices(connection, request);
         verify(repository).findTestsForServices(connection, List.of(serviceRow), 1768262400L, 1768262800L);
-        verify(repository).findHivstSelfTestsByBaseEntity(connection, List.of(serviceRow));
+        verify(repository).findHivstTestByBaseEntity(connection, List.of(serviceRow));
     }
 
     @SuppressWarnings("unchecked")
@@ -212,18 +212,18 @@ class OpenSrpIntegrationServiceTest {
         );
 
         OpenSrpIntegrationRepository.HivstSelfTestRow nonMatchingHivstRow = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "result-event-1",
+                "2026-01-14",
                 "base-2",
-                "KIT-001",
                 "client",
+                "KIT-001",
                 "reactive",
                 "2026-01-14",
                 null,
-                null,
-                null,
-                null,
+                "issue-event-1",
+                "2026-01-14",
                 "BATCH-CLIENT",
-                "BATCH-PEER",
-                "BATCH-PARTNER"
+                "2027-01-11"
         );
 
         when(connectionFactory.openConnection()).thenReturn(connection);
@@ -231,7 +231,7 @@ class OpenSrpIntegrationServiceTest {
         when(repository.findServices(connection, request)).thenReturn(List.of(serviceRow));
         when(repository.findTestsForServices(connection, List.of(serviceRow), 1768262400L, 1768262800L))
                 .thenReturn(Map.of(OpenSrpIntegrationRepository.serviceKey(serviceRow), List.of(reagentTestRow)));
-        when(repository.findHivstSelfTestsByBaseEntity(connection, List.of(serviceRow)))
+        when(repository.findHivstTestByBaseEntity(connection, List.of(serviceRow)))
                 .thenReturn(Map.of("base-2", List.of(nonMatchingHivstRow)));
 
         Map<String, Object> response = service.fetch(request);
