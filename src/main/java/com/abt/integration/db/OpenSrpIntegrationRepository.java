@@ -227,6 +227,64 @@ public class OpenSrpIntegrationRepository {
         }
     }
 
+    public Map<String, List<HivstSelfTestRow>> findHivstSelfTestsByBaseEntity(Connection connection,
+                                                                               List<ServiceRow> serviceRows) throws SQLException {
+        Set<String> baseEntityIds = new HashSet<>();
+        for (ServiceRow serviceRow : serviceRows) {
+            if (hasText(serviceRow.baseEntityId())) {
+                baseEntityIds.add(serviceRow.baseEntityId());
+            }
+        }
+
+        if (baseEntityIds.isEmpty()) {
+            return Map.of();
+        }
+
+        String sql = "SELECT " +
+                "k.base_entity_id, k.kit_code, k.event_date AS issue_event_date, k.collection_date AS issue_collection_date, " +
+                "k.client_kit_batch_number, k.peer_friend_kit_batch_number, k.sexual_partner_kit_batch_number, " +
+                "r.kit_for, r.hivst_result, r.event_date AS result_event_date, r.collection_date AS result_collection_date, r.result_date " +
+                "FROM " + schema + ".hivst_issue_kits k " +
+                "JOIN " + schema + ".hivst_results r ON k.kit_code = r.kit_code AND k.base_entity_id = r.base_entity_id " +
+                "WHERE k.base_entity_id IN (" + placeholders(baseEntityIds.size()) + ") " +
+                "ORDER BY k.base_entity_id ASC, r.result_date ASC, r.event_id ASC";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int index = 1;
+            for (String baseEntityId : baseEntityIds) {
+                statement.setString(index++, baseEntityId);
+            }
+
+            Map<String, List<HivstSelfTestRow>> rowsByBaseEntity = new HashMap<>();
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    HivstSelfTestRow row = new HivstSelfTestRow(
+                            resultSet.getString("base_entity_id"),
+                            resultSet.getString("kit_code"),
+                            resultSet.getString("kit_for"),
+                            resultSet.getString("hivst_result"),
+                            resultSet.getString("result_date"),
+                            resultSet.getString("result_collection_date"),
+                            resultSet.getString("result_event_date"),
+                            resultSet.getString("issue_collection_date"),
+                            resultSet.getString("issue_event_date"),
+                            resultSet.getString("client_kit_batch_number"),
+                            resultSet.getString("peer_friend_kit_batch_number"),
+                            resultSet.getString("sexual_partner_kit_batch_number")
+                    );
+
+                    if (!hasText(row.baseEntityId())) {
+                        continue;
+                    }
+
+                    rowsByBaseEntity.computeIfAbsent(row.baseEntityId(), unused -> new ArrayList<>()).add(row);
+                }
+            }
+
+            return rowsByBaseEntity;
+        }
+    }
+
     public static String serviceKey(ServiceRow serviceRow) {
         return testKey(serviceRow.htsVisitGroup(), serviceRow.baseEntityId());
     }
@@ -318,6 +376,22 @@ public class OpenSrpIntegrationRepository {
             String syphilisTestResults,
             String testType,
             long dateCreated
+    ) {
+    }
+
+    public record HivstSelfTestRow(
+            String baseEntityId,
+            String kitCode,
+            String kitFor,
+            String hivstResult,
+            String resultDate,
+            String resultCollectionDate,
+            String resultEventDate,
+            String issueCollectionDate,
+            String issueEventDate,
+            String clientKitBatchNumber,
+            String peerFriendKitBatchNumber,
+            String sexualPartnerKitBatchNumber
     ) {
     }
 }

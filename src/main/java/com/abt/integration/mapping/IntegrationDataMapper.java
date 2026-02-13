@@ -152,7 +152,14 @@ public class IntegrationDataMapper {
 
     public Map<String, Object> mapServiceRow(OpenSrpIntegrationRepository.ServiceRow serviceRow,
                                              List<OpenSrpIntegrationRepository.TestRow> testRows) {
+        return mapServiceRow(serviceRow, testRows, List.of());
+    }
+
+    public Map<String, Object> mapServiceRow(OpenSrpIntegrationRepository.ServiceRow serviceRow,
+                                             List<OpenSrpIntegrationRepository.TestRow> testRows,
+                                             List<OpenSrpIntegrationRepository.HivstSelfTestRow> hivstSelfTestRows) {
         List<OpenSrpIntegrationRepository.TestRow> safeTestRows = testRows == null ? List.of() : testRows;
+        List<OpenSrpIntegrationRepository.HivstSelfTestRow> safeHivstSelfTestRows = hivstSelfTestRows == null ? List.of() : hivstSelfTestRows;
 
         Map<String, Object> item = new LinkedHashMap<>();
         item.put("htcApproach", mapTestingApproach(serviceRow.htsTestingApproach()));
@@ -168,7 +175,7 @@ public class IntegrationDataMapper {
         item.put("clientClassification", mapClientClassification(serviceRow));
         item.put("testingHistory", mapTestingHistory(serviceRow));
         item.put("currentTesting", mapCurrentTesting(serviceRow));
-        item.put("selfTesting", mapSelfTesting(safeTestRows));
+        item.put("selfTesting", mapSelfTesting(serviceRow, safeHivstSelfTestRows));
         List<Map<String, Object>> reagentTesting = mapReagentTesting(safeTestRows);
         item.put("reagentTesting", reagentTesting);
         item.put("preventionServices", mapPreventionServices(serviceRow));
@@ -353,24 +360,68 @@ public class IntegrationDataMapper {
         return currentTesting;
     }
 
-    private List<Map<String, Object>> mapSelfTesting(List<OpenSrpIntegrationRepository.TestRow> tests) {
+    private List<Map<String, Object>> mapSelfTesting(OpenSrpIntegrationRepository.ServiceRow serviceRow,
+                                                     List<OpenSrpIntegrationRepository.HivstSelfTestRow> hivstSelfTestRows) {
         List<Map<String, Object>> selfTesting = new ArrayList<>();
+        String serviceDate = normalizeDate(firstNonBlank(
+                serviceRow.htsVisitDate(),
+                serviceRow.visitDate(),
+                Long.toString(serviceRow.dateCreated())
+        ));
 
-        for (OpenSrpIntegrationRepository.TestRow test : tests) {
-            if (!isSelfTest(test)) {
+        for (OpenSrpIntegrationRepository.HivstSelfTestRow hivstSelfTestRow : hivstSelfTestRows) {
+            String hivstDate = normalizeDate(firstNonBlank(
+                    hivstSelfTestRow.resultDate(),
+                    hivstSelfTestRow.resultCollectionDate(),
+                    hivstSelfTestRow.resultEventDate(),
+                    hivstSelfTestRow.issueCollectionDate(),
+                    hivstSelfTestRow.issueEventDate()
+            ));
+
+            if (!hasText(serviceDate) || !hasText(hivstDate) || !serviceDate.equals(hivstDate)) {
                 continue;
             }
 
             Map<String, Object> testItem = new LinkedHashMap<>();
-            testItem.put("selfTestKitCode", mapKitName(test.typeOfTestKitUsed()));
-            testItem.put("selfTestBatchNo", test.testKitBatchNumber());
-            testItem.put("selfTestExpiryDate", normalizeDate(test.testKitExpireDate()));
-            testItem.put("selfTestKitName", prettifyName(test.typeOfTestKitUsed()));
-            testItem.put("selfTestingResults", catalog.mapToIntegrationValue("PreviousTestResult", test.testResult(), HIV_RESULT_ALIASES, DEFAULT_NOT_APPLICABLE_VALUE));
+            testItem.put("selfTestKitCode", firstNonBlank(hivstSelfTestRow.kitCode(), hivstSelfTestRow.kitFor()));
+            testItem.put("selfTestBatchNo", resolveHivstBatchNo(hivstSelfTestRow));
+            testItem.put("selfTestExpiryDate", null);
+            testItem.put("selfTestKitName", prettifyName(firstNonBlank(hivstSelfTestRow.kitFor(), hivstSelfTestRow.kitCode())));
+            testItem.put("selfTestingResults", catalog.mapToIntegrationValue(
+                    "PreviousTestResult",
+                    hivstSelfTestRow.hivstResult(),
+                    HIV_RESULT_ALIASES,
+                    DEFAULT_NOT_APPLICABLE_VALUE
+            ));
             selfTesting.add(testItem);
         }
 
         return selfTesting;
+    }
+
+    private String resolveHivstBatchNo(OpenSrpIntegrationRepository.HivstSelfTestRow hivstSelfTestRow) {
+        String normalizedKitFor = MappingReferenceCatalog.normalize(hivstSelfTestRow.kitFor());
+        if (normalizedKitFor.contains("SEXUAL_PARTNER")) {
+            return firstNonBlank(
+                    hivstSelfTestRow.sexualPartnerKitBatchNumber(),
+                    hivstSelfTestRow.clientKitBatchNumber(),
+                    hivstSelfTestRow.peerFriendKitBatchNumber()
+            );
+        }
+
+        if (normalizedKitFor.contains("PEER_FRIEND")) {
+            return firstNonBlank(
+                    hivstSelfTestRow.peerFriendKitBatchNumber(),
+                    hivstSelfTestRow.clientKitBatchNumber(),
+                    hivstSelfTestRow.sexualPartnerKitBatchNumber()
+            );
+        }
+
+        return firstNonBlank(
+                hivstSelfTestRow.clientKitBatchNumber(),
+                hivstSelfTestRow.peerFriendKitBatchNumber(),
+                hivstSelfTestRow.sexualPartnerKitBatchNumber()
+        );
     }
 
     private List<Map<String, Object>> mapReagentTesting(List<OpenSrpIntegrationRepository.TestRow> tests) {
@@ -435,7 +486,8 @@ public class IntegrationDataMapper {
 
     private boolean hasReactiveUnigoldTest(List<Map<String, Object>> reagentTesting) {
         for (Map<String, Object> reagentTest : reagentTesting) {
-            if (valueMatches(reagentTest.get("testType"), "UNIGOLD")
+            if ((valueMatches(reagentTest.get("testType"), "UNIGOLD")
+                    || valueMatches(reagentTest.get("testType"), "THIRD"))
                     && valueMatches(reagentTest.get("reagentResult"), "REACTIVE")) {
                 return true;
             }
@@ -471,8 +523,9 @@ public class IntegrationDataMapper {
         String normalized = MappingReferenceCatalog.normalize(rawType);
         return switch (normalized) {
             case "FIRST", "FIRST_HIV_TEST", "FIRST_TEST" -> "FIRST";
+            case "REPEAT_OF_FIRST_HIV_TEST", "REPEAT_FIRST_HIV_TEST", "REPEAT_OF_FIRST_TEST", "REPEAT_FIRST_TEST" -> "REPEAT_FIRST";
             case "SECOND", "SECOND_HIV_TEST", "SECOND_TEST" -> "SECOND";
-            case "UNIGOLD", "UNIGOLD_HIV_TEST" -> "UNIGOLD";
+            case "UNIGOLD", "UNIGOLD_HIV_TEST", "THIRD_HIV_TEST", "THIRD" -> "THIRD";
             default -> normalized;
         };
     }
