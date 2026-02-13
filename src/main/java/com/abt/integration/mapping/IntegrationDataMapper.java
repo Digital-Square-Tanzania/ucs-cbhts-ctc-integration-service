@@ -521,13 +521,31 @@ public class IntegrationDataMapper {
         }
 
         String normalized = MappingReferenceCatalog.normalize(rawType);
-        return switch (normalized) {
-            case "FIRST", "FIRST_HIV_TEST", "FIRST_TEST" -> "FIRST";
-            case "REPEAT_OF_FIRST_HIV_TEST", "REPEAT_FIRST_HIV_TEST", "REPEAT_OF_FIRST_TEST", "REPEAT_FIRST_TEST" -> "REPEAT_FIRST";
-            case "SECOND", "SECOND_HIV_TEST", "SECOND_TEST" -> "SECOND";
-            case "UNIGOLD", "UNIGOLD_HIV_TEST", "THIRD_HIV_TEST", "THIRD" -> "THIRD";
-            default -> normalized;
-        };
+        switch (normalized) {
+            case "FIRST":
+            case "FIRST_HIV_TEST":
+            case "FIRST_TEST":
+                return "FIRST";
+            case "REPEAT_OF_FIRST_HIV_TEST":
+            case "REPEAT_FIRST_HIV_TEST":
+            case "REPEAT_OF_FIRST_TEST":
+            case "REPEAT_FIRST_TEST":
+                return "REPEAT_FIRST";
+            case "SECOND":
+            case "SECOND_HIV_TEST":
+            case "SECOND_TEST":
+                return "SECOND";
+            case "UNIGOLD":
+            case "UNIGOLD_HIV_TEST":
+            case "THIRD_HIV_TEST":
+            case "THIRD":
+                return "THIRD";
+            default:
+                if (normalized.contains("UNIGOLD")) {
+                    return "THIRD";
+                }
+                return normalized;
+        }
     }
 
     private String mapSyphilisResult(String rawResult) {
