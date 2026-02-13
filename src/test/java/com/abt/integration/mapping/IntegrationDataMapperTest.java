@@ -64,21 +64,8 @@ class IntegrationDataMapperTest {
                 "John Doe"
         );
 
-        OpenSrpIntegrationRepository.TestRow selfTest = new OpenSrpIntegrationRepository.TestRow(
-                "test-1",
-                "visit-group-1",
-                "base-1",
-                "bioline",
-                "BATCH001",
-                "2026-12-31",
-                "reactive",
-                null,
-                "self_test",
-                1768262800000L
-        );
-
         OpenSrpIntegrationRepository.TestRow reagentTest = new OpenSrpIntegrationRepository.TestRow(
-                "test-2",
+                "test-1",
                 "visit-group-1",
                 "base-1",
                 "hiv_syphilis_dual",
@@ -86,11 +73,26 @@ class IntegrationDataMapperTest {
                 "2026-08-31",
                 "non_reactive",
                 "positive",
-                "first",
+                "First HIV Test",
                 1768262800000L
         );
 
-        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(selfTest, reagentTest));
+        OpenSrpIntegrationRepository.HivstSelfTestRow hivstSelfTestRow = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "base-1",
+                "KIT001",
+                "client",
+                "reactive",
+                "2025-12-20",
+                null,
+                null,
+                null,
+                null,
+                "BATCH001",
+                null,
+                null
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(reagentTest), List.of(hivstSelfTestRow));
 
         assertEquals("CBHTS", mapped.get("htcApproach"));
         assertEquals("2025-12-20", mapped.get("visitDate"));
@@ -119,6 +121,8 @@ class IntegrationDataMapperTest {
 
         List<Map<String, Object>> selfTesting = (List<Map<String, Object>>) mapped.get("selfTesting");
         assertEquals(1, selfTesting.size());
+        assertEquals("KIT001", selfTesting.get(0).get("selfTestKitCode"));
+        assertEquals("BATCH001", selfTesting.get(0).get("selfTestBatchNo"));
         assertEquals("REACTIVE", selfTesting.get(0).get("selfTestingResults"));
 
         List<Map<String, Object>> reagentTesting = (List<Map<String, Object>>) mapped.get("reagentTesting");
@@ -134,6 +138,75 @@ class IntegrationDataMapperTest {
         assertEquals(1, referralAndOutcome.size());
         assertEquals("PREP_SERVICE", referralAndOutcome.get(0).get("referredToCode"));
         assertEquals("13211-1", referralAndOutcome.get(0).get("toFacility"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldIncludeMultipleHivstResultsForSameClientOnSameDay() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = buildServiceRow("Single");
+
+        OpenSrpIntegrationRepository.HivstSelfTestRow clientResult = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "base-1",
+                "KIT-CLIENT",
+                "client",
+                "reactive",
+                "2025-12-20",
+                null,
+                null,
+                null,
+                null,
+                "CLIENT-BATCH",
+                "PEER-BATCH",
+                "PARTNER-BATCH"
+        );
+
+        OpenSrpIntegrationRepository.HivstSelfTestRow peerResult = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "base-1",
+                "KIT-PEER",
+                "peer_friend",
+                "non_reactive",
+                "2025-12-20",
+                null,
+                null,
+                null,
+                null,
+                "CLIENT-BATCH",
+                "PEER-BATCH",
+                "PARTNER-BATCH"
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(), List.of(clientResult, peerResult));
+        List<Map<String, Object>> selfTesting = (List<Map<String, Object>>) mapped.get("selfTesting");
+
+        assertEquals(2, selfTesting.size());
+        assertEquals("CLIENT-BATCH", selfTesting.get(0).get("selfTestBatchNo"));
+        assertEquals("PEER-BATCH", selfTesting.get(1).get("selfTestBatchNo"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldExcludeHivstResultsWhenDateIsDifferentFromHtsEventDate() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = buildServiceRow("Single");
+
+        OpenSrpIntegrationRepository.HivstSelfTestRow differentDay = new OpenSrpIntegrationRepository.HivstSelfTestRow(
+                "base-1",
+                "KIT-CLIENT",
+                "client",
+                "reactive",
+                "2025-12-21",
+                null,
+                null,
+                null,
+                null,
+                "CLIENT-BATCH",
+                null,
+                null
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of(), List.of(differentDay));
+        List<Map<String, Object>> selfTesting = (List<Map<String, Object>>) mapped.get("selfTesting");
+
+        assertEquals(0, selfTesting.size());
     }
 
     @SuppressWarnings("unchecked")
@@ -245,7 +318,7 @@ class IntegrationDataMapperTest {
                 "2026-01-01",
                 "non_reactive",
                 null,
-                "first",
+                "First HIV Test",
                 1768262800000L
         );
 
@@ -258,7 +331,7 @@ class IntegrationDataMapperTest {
                 "2026-01-01",
                 "non_reactive",
                 null,
-                "first",
+                "Repeat of First HIV Test",
                 1768262801000L
         );
 
@@ -271,7 +344,7 @@ class IntegrationDataMapperTest {
                 "2026-01-01",
                 "non_reactive",
                 null,
-                "first",
+                "Second HIV Test",
                 1768262802000L
         );
 
@@ -284,7 +357,7 @@ class IntegrationDataMapperTest {
                 "2026-01-01",
                 "non_reactive",
                 null,
-                "first",
+                "Unigold HIV Test",
                 1768262803000L
         );
 
@@ -293,9 +366,13 @@ class IntegrationDataMapperTest {
 
         assertEquals(4, reagentTesting.size());
         assertEquals("DUAL", reagentTesting.get(0).get("reagentTest"));
+        assertEquals("FIRST", reagentTesting.get(0).get("testType"));
         assertEquals("SD_BIOLINE", reagentTesting.get(1).get("reagentTest"));
+        assertEquals("REPEAT_FIRST", reagentTesting.get(1).get("testType"));
         assertEquals("FIRST_RESPONSE", reagentTesting.get(2).get("reagentTest"));
+        assertEquals("SECOND", reagentTesting.get(2).get("testType"));
         assertEquals("UNIGOLD", reagentTesting.get(3).get("reagentTest"));
+        assertEquals("THIRD", reagentTesting.get(3).get("testType"));
     }
 
     @SuppressWarnings("unchecked")
