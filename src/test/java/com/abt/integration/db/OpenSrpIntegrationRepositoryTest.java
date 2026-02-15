@@ -46,6 +46,7 @@ class OpenSrpIntegrationRepositoryTest {
         assertTrue(sql.contains("LEFT JOIN public.tanzania_locations hl ON hl.location_uuid = NULLIF(TRIM(h.location_id), '')"));
         assertTrue(sql.contains("l.council_code AS provider_council_code"));
         assertTrue(sql.contains("hl.village_code AS household_village_code"));
+        assertTrue(sql.contains("s.final_hiv_test_result"));
     }
 
     @Test

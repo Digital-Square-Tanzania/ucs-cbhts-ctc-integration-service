@@ -64,6 +64,7 @@ class IntegrationDataMapperTest {
                 "TZ.NT.MY.ML.4.8.1.3",
                 "John Doe"
         );
+        serviceRow = withFinalHivTestResult(serviceRow, "positive");
 
         OpenSrpIntegrationRepository.TestRow reagentTest = new OpenSrpIntegrationRepository.TestRow(
                 "test-1",
@@ -138,6 +139,7 @@ class IntegrationDataMapperTest {
         assertEquals("DUAL", reagentTesting.get(0).get("reagentTest"));
         assertEquals("NON_REACTIVE", reagentTesting.get(0).get("reagentResult"));
         assertEquals("POSITIVE", reagentTesting.get(0).get("syphilisResult"));
+        assertEquals("POSITIVE", mapped.get("hivResultCode"));
 
         Map<String, Object> preventionServices = (Map<String, Object>) mapped.get("preventionServices");
         assertTrue((Boolean) preventionServices.get("condomGiven"));
@@ -167,6 +169,24 @@ class IntegrationDataMapperTest {
         assertEquals(false, clientClassificationFalse.get("eligibleForTesting"));
         assertEquals(true, clientClassificationNull.get("eligibleForTesting"));
         assertEquals(true, clientClassificationMissing.get("eligibleForTesting"));
+    }
+
+    @Test
+    void mapServiceRow_shouldMapHivResultCodeFromFinalHivTestResult() {
+        Map<String, String> expectedByResult = new LinkedHashMap<>();
+        expectedByResult.put("negative", "NEGATIVE");
+        expectedByResult.put("positive", "POSITIVE");
+        expectedByResult.put("inconclusive", "INCONCLUSIVE");
+
+        for (Map.Entry<String, String> entry : expectedByResult.entrySet()) {
+            OpenSrpIntegrationRepository.ServiceRow serviceRow = withFinalHivTestResult(
+                    buildServiceRow("Single"),
+                    entry.getKey()
+            );
+
+            Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
+            assertEquals(entry.getValue(), mapped.get("hivResultCode"));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -967,6 +987,7 @@ class IntegrationDataMapperTest {
                 serviceRow.htsNumberOfMaleCondomsProvided(),
                 serviceRow.htsNumberOfFemaleCondomsProvided(),
                 serviceRow.htsPreventiveServices(),
+                serviceRow.finalHivTestResult(),
                 serviceRow.uniqueId(),
                 serviceRow.firstName(),
                 serviceRow.middleName(),
@@ -1019,6 +1040,7 @@ class IntegrationDataMapperTest {
                 serviceRow.htsNumberOfMaleCondomsProvided(),
                 serviceRow.htsNumberOfFemaleCondomsProvided(),
                 serviceRow.htsPreventiveServices(),
+                serviceRow.finalHivTestResult(),
                 serviceRow.uniqueId(),
                 serviceRow.firstName(),
                 serviceRow.middleName(),
@@ -1071,6 +1093,7 @@ class IntegrationDataMapperTest {
                 serviceRow.htsNumberOfMaleCondomsProvided(),
                 serviceRow.htsNumberOfFemaleCondomsProvided(),
                 serviceRow.htsPreventiveServices(),
+                serviceRow.finalHivTestResult(),
                 serviceRow.uniqueId(),
                 serviceRow.firstName(),
                 serviceRow.middleName(),
@@ -1124,6 +1147,7 @@ class IntegrationDataMapperTest {
                 serviceRow.htsNumberOfMaleCondomsProvided(),
                 serviceRow.htsNumberOfFemaleCondomsProvided(),
                 serviceRow.htsPreventiveServices(),
+                serviceRow.finalHivTestResult(),
                 serviceRow.uniqueId(),
                 serviceRow.firstName(),
                 serviceRow.middleName(),
@@ -1143,6 +1167,59 @@ class IntegrationDataMapperTest {
                 providerCouncilCode,
                 serviceRow.ward(),
                 householdVillageCode,
+                serviceRow.village(),
+                serviceRow.counsellorName()
+        );
+    }
+
+    private OpenSrpIntegrationRepository.ServiceRow withFinalHivTestResult(
+            OpenSrpIntegrationRepository.ServiceRow serviceRow,
+            String finalHivTestResult
+    ) {
+        return new OpenSrpIntegrationRepository.ServiceRow(
+                serviceRow.eventId(),
+                serviceRow.baseEntityId(),
+                serviceRow.htsVisitGroup(),
+                serviceRow.visitDate(),
+                serviceRow.htsVisitDate(),
+                serviceRow.dateCreated(),
+                serviceRow.providerId(),
+                serviceRow.htsTestingApproach(),
+                serviceRow.htsVisitType(),
+                serviceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                serviceRow.htsPreviousHivstClientType(),
+                serviceRow.htsPreviousHivstTestType(),
+                serviceRow.htsPreviousHivstTestResults(),
+                serviceRow.htsClientType(),
+                serviceRow.htsTestingPoint(),
+                serviceRow.htsTypeOfCounsellingProvided(),
+                serviceRow.htsClientsTbScreeningOutcome(),
+                serviceRow.htsHasPostTestCounsellingBeenProvided(),
+                serviceRow.htsHivResultsDisclosure(),
+                serviceRow.htsWereCondomsDistributed(),
+                serviceRow.htsNumberOfMaleCondomsProvided(),
+                serviceRow.htsNumberOfFemaleCondomsProvided(),
+                serviceRow.htsPreventiveServices(),
+                finalHivTestResult,
+                serviceRow.uniqueId(),
+                serviceRow.firstName(),
+                serviceRow.middleName(),
+                serviceRow.lastName(),
+                serviceRow.phoneNumber(),
+                serviceRow.nationalId(),
+                serviceRow.voterId(),
+                serviceRow.driverLicense(),
+                serviceRow.passport(),
+                serviceRow.sex(),
+                serviceRow.birthDate(),
+                serviceRow.maritalStatus(),
+                serviceRow.pregnancyStatus(),
+                serviceRow.hfrCode(),
+                serviceRow.region(),
+                serviceRow.district(),
+                serviceRow.districtCouncil(),
+                serviceRow.ward(),
+                serviceRow.healthFacility(),
                 serviceRow.village(),
                 serviceRow.counsellorName()
         );
