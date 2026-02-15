@@ -179,6 +179,7 @@ public class IntegrationDataMapper {
         item.put("selfTesting", mapSelfTesting(serviceRow, safeHivstSelfTestRows));
         List<Map<String, Object>> reagentTesting = mapReagentTesting(safeTestRows);
         item.put("reagentTesting", reagentTesting);
+        item.put("hivResultCode", mapFinalHivResultCode(serviceRow.finalHivTestResult()));
         item.put("preventionServices", mapPreventionServices(serviceRow));
         item.put("referralAndOutcome", mapReferralAndOutcome(serviceRow, hasReactiveUnigoldTest(reagentTesting)));
         item.put("remarks", "Generated from cbhts_services event " + serviceRow.eventId());
@@ -331,6 +332,15 @@ public class IntegrationDataMapper {
 
         testingHistory.put("previousTestResult", previousResultCode);
         return testingHistory;
+    }
+
+    private String mapFinalHivResultCode(String finalHivTestResult) {
+        return switch (MappingReferenceCatalog.normalize(finalHivTestResult)) {
+            case "NEGATIVE" -> "NEGATIVE";
+            case "POSITIVE" -> "POSITIVE";
+            case "INCONCLUSIVE" -> "INCONCLUSIVE";
+            default -> null;
+        };
     }
 
     private Map<String, Object> mapCurrentTesting(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
