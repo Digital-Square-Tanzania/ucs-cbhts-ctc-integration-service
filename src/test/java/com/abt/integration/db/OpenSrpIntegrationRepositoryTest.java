@@ -20,6 +20,60 @@ import static org.mockito.Mockito.when;
 class OpenSrpIntegrationRepositoryTest {
 
     @Test
+    void findLatestServiceMetadataByClientCode_shouldQueryLatestRecordByClientCodeAndHfrCode() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        when(connection.prepareStatement(sqlCaptor.capture())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(false);
+
+        repository.findLatestServiceMetadataByClientCode(connection, "12123-1", "CLT123456");
+
+        String sql = sqlCaptor.getValue();
+        assertTrue(sql.contains("FROM public.cbhts_services s"));
+        assertTrue(sql.contains("JOIN public.client c ON c.base_entity_id = s.base_entity_id"));
+        assertTrue(sql.contains("WHERE c.unique_id = ?"));
+        assertTrue(sql.contains("AND l.hfr_code = ?"));
+        assertTrue(sql.contains("ORDER BY s.date_created DESC NULLS LAST, s.event_id DESC"));
+        assertTrue(sql.contains("LIMIT 1"));
+    }
+
+    @Test
+    void findLatestServiceMetadataByClientCode_shouldMapMetadataFields() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        when(connection.prepareStatement(org.mockito.ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getString("base_entity_id")).thenReturn("base-1");
+        when(resultSet.getString("provider_id")).thenReturn("provider-1");
+        when(resultSet.getString("team")).thenReturn("Team A");
+        when(resultSet.getString("team_id")).thenReturn("team-1");
+        when(resultSet.getString("location_id")).thenReturn("loc-1");
+        when(resultSet.getString("entity_type")).thenReturn("ec_client");
+
+        OpenSrpIntegrationRepository.VerificationServiceMetadataRow row = repository
+                .findLatestServiceMetadataByClientCode(connection, "12123-1", "CLT123456")
+                .orElseThrow();
+
+        assertEquals("base-1", row.baseEntityId());
+        assertEquals("provider-1", row.providerId());
+        assertEquals("Team A", row.team());
+        assertEquals("team-1", row.teamId());
+        assertEquals("loc-1", row.locationId());
+        assertEquals("ec_client", row.entityType());
+    }
+
+    @Test
     void findServices_shouldJoinHouseholdAndSelectResidenceCodesForFallback() throws SQLException {
         OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
 
