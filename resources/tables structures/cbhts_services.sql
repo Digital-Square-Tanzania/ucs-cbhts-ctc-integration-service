@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS public.cbhts_services
     hts_has_the_client_recently_tested_with_hivst text COLLATE pg_catalog."default",
     hts_previous_hivst_client_type text COLLATE pg_catalog."default",
     hts_previous_hivst_test_type text COLLATE pg_catalog."default",
+    hts_previous_hivst_test_results text COLLATE pg_catalog."default",
+    type_of_index_client text COLLATE pg_catalog."default",
     hts_client_type text COLLATE pg_catalog."default",
     hts_preventive_services text COLLATE pg_catalog."default",
     hts_testing_approach text COLLATE pg_catalog."default",
@@ -37,12 +39,12 @@ CREATE TABLE IF NOT EXISTS public.cbhts_services
     reasons_for_not_disclosing_results text COLLATE pg_catalog."default",
     hts_clients_tb_screening_outcome text COLLATE pg_catalog."default",
     hts_does_client_need_hiv_self_test_kits text COLLATE pg_catalog."default",
-    pre_test_services_completion_status text COLLATE pg_catalog."default",
+    final_hiv_test_result text COLLATE pg_catalog."default",
     date_created bigint,
     CONSTRAINT cbhts_services_pkey PRIMARY KEY (event_id)
-)
+    )
 
-TABLESPACE pg_default;
+    TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.cbhts_services
     OWNER to postgres;

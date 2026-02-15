@@ -15,10 +15,15 @@ CREATE TABLE IF NOT EXISTS public.tanzania_locations
     zone character varying COLLATE pg_catalog."default",
     country character varying COLLATE pg_catalog."default",
     is_pepfar_site boolean,
+    village_code character varying(50) COLLATE pg_catalog."default",
+    ward_code character varying COLLATE pg_catalog."default",
+    district_code character varying(50) COLLATE pg_catalog."default",
+    council_code character varying(50) COLLATE pg_catalog."default",
+    region_code character varying(50) COLLATE pg_catalog."default",
     CONSTRAINT tanzania_locations_pkey PRIMARY KEY (location_uuid)
-)
+    )
 
-TABLESPACE pg_default;
+    TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.tanzania_locations
     OWNER to postgres;
