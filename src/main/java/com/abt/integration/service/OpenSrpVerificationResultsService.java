@@ -141,6 +141,7 @@ public class OpenSrpVerificationResultsService implements VerificationResultsEnd
         event.setLocationId(metadata.locationId());
         event.setTeam(metadata.team());
         event.setTeamId(metadata.teamId());
+        event.setBaseEntityId(metadata.baseEntityId());
         event.setType("Event");
         event.setFormSubmissionId(UUID.randomUUID().toString());
         event.setEventDate(new Date());
@@ -154,7 +155,7 @@ public class OpenSrpVerificationResultsService implements VerificationResultsEnd
         event.addObs(startObs());
         event.addObs(endObs());
         event.addObs(obs("verification_date", item.getVerificationDate()));
-        event.addObs(obs("hiv_final_verification_result_code", normalizeResult(item.getHivFinalVerificationResultCode())));
+        event.addObs(obs("hiv_final_verification_result_code", normalizeResult(item.getHivFinalVerificationResultCode()).toLowerCase()));
         if (hasText(item.getCtcId())) {
             event.addObs(obs("ctc_id", item.getCtcId()));
         }

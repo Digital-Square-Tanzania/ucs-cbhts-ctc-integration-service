@@ -94,7 +94,7 @@ class OpenSrpVerificationResultsServiceTest {
         assertEquals("provider-1", sentEvent.getProviderId());
         assertEquals("team-1", sentEvent.getTeamId());
         assertEquals("Team A", sentEvent.getTeam());
-        assertTrue(hasObs(sentEvent, "hiv_final_verification_result_code", "POSITIVE"));
+        assertTrue(hasObs(sentEvent, "hiv_final_verification_result_code", "positive"));
         assertTrue(hasObs(sentEvent, "verification_date", "2026-01-01"));
         assertTrue(hasObs(sentEvent, "visit_id", "B0452823-F078-4CAC-8746-4A11733E942A"));
     }
