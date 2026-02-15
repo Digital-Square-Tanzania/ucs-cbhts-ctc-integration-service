@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -48,6 +49,40 @@ public class OpenSrpIntegrationRepository {
                     return resultSet.getLong(1);
                 }
                 return 0L;
+            }
+        }
+    }
+
+    public Optional<VerificationServiceMetadataRow> findLatestServiceMetadataByClientCode(Connection connection,
+                                                                                           String hfrCode,
+                                                                                           String clientCode) throws SQLException {
+        String sql = "SELECT s.base_entity_id, s.provider_id, s.team, s.team_id, s.location_id, s.entity_type " +
+                "FROM " + schema + ".cbhts_services s " +
+                "JOIN " + schema + ".client c ON c.base_entity_id = s.base_entity_id " +
+                "JOIN " + schema + ".team_members tm ON tm.identifier = s.provider_id " +
+                "JOIN " + schema + ".tanzania_locations l ON l.location_uuid = tm.location_uuid " +
+                "WHERE c.unique_id = ? " +
+                "AND l.hfr_code = ? " +
+                "ORDER BY s.date_created DESC NULLS LAST, s.event_id DESC " +
+                "LIMIT 1";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, clientCode);
+            statement.setString(2, hfrCode);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return Optional.empty();
+                }
+
+                return Optional.of(new VerificationServiceMetadataRow(
+                        resultSet.getString("base_entity_id"),
+                        resultSet.getString("provider_id"),
+                        resultSet.getString("team"),
+                        resultSet.getString("team_id"),
+                        resultSet.getString("location_id"),
+                        resultSet.getString("entity_type")
+                ));
             }
         }
     }
@@ -418,6 +453,16 @@ public class OpenSrpIntegrationRepository {
         }
 
         return true;
+    }
+
+    public record VerificationServiceMetadataRow(
+            String baseEntityId,
+            String providerId,
+            String team,
+            String teamId,
+            String locationId,
+            String entityType
+    ) {
     }
 
     public record ServiceRow(
