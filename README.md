@@ -40,6 +40,7 @@ Then build and run:
 ## 3. Endpoint
 
 - `POST /integration/ctc2hts`
+- `POST /integration/verification-results`
 - `GET /health`
 
 Sample request body:
@@ -73,6 +74,30 @@ curl --request POST "http://127.0.0.1:8080/integration/ctc2hts" \
     "pageSize": 100
   }'
 ```
+
+Verification results request:
+
+```bash
+curl --request POST "http://127.0.0.1:8080/integration/verification-results" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "hfrCode": "12123-1",
+    "data": [
+      {
+        "clientCode": "CLT123456",
+        "verificationDate": "2026-01-01",
+        "hivFinalVerificationResultCode": "POSITIVE",
+        "ctcId": "12-11-2132-133214",
+        "visitId": "B0452823-F078-4CAC-8746-4A11733E942A"
+      }
+    ]
+  }'
+```
+
+Set OpenSRP destination environment variables for verification event forwarding:
+- `OPENSRP_SERVER_EVENT_URL`
+- `OPENSRP_SERVER_USERNAME`
+- `OPENSRP_SERVER_PASSWORD`
 
 ## 4. Deployment via Docker
 
