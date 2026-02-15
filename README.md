@@ -34,7 +34,7 @@ Then build and run:
 
 ```bash
   ./gradlew clean shadowJar
-  java -jar build/libs/ucs-lab-module-integration-service-1.0.0.jar
+  java -jar build/libs/ucs-ctc-integration-service-1.0.0.jar
 ```
 
 ## 3. Endpoint
