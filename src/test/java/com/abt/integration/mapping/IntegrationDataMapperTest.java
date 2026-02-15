@@ -116,6 +116,10 @@ class IntegrationDataMapperTest {
         assertEquals("INDIVIDUAL", currentTesting.get("counsellingTypeCode"));
         assertEquals("TB_PRESUMPTIVE", currentTesting.get("tbScreeningDetails"));
 
+        Map<String, Object> residence = (Map<String, Object>) mapped.get("residence");
+        assertEquals(1, residence.size());
+        assertEquals("TZ.NT.MY.ML.4.8.1", residence.get("villageStreet"));
+
         Map<String, Object> testingHistory = (Map<String, Object>) mapped.get("testingHistory");
         assertEquals("SELF_TEST_ORAL", testingHistory.get("testingTypePrevious"));
         assertEquals("REACTIVE", testingHistory.get("previousTestResult"));
@@ -163,6 +167,74 @@ class IntegrationDataMapperTest {
         assertEquals(false, clientClassificationFalse.get("eligibleForTesting"));
         assertEquals(true, clientClassificationNull.get("eligibleForTesting"));
         assertEquals(true, clientClassificationMissing.get("eligibleForTesting"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldMapResidenceToVillageStreetWhenHouseholdVillageCodeExists() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withResidenceCodes(
+                buildServiceRow("Single"),
+                "VLG-123",
+                "COUNCIL-1"
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> residence = (Map<String, Object>) mapped.get("residence");
+
+        assertEquals(1, residence.size());
+        assertEquals("VLG-123", residence.get("villageStreet"));
+        assertTrue(!residence.containsKey("council"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldMapResidenceToCouncilWhenHouseholdLocationIsNull() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withResidenceCodes(
+                buildServiceRow("Single"),
+                null,
+                "COUNCIL-2"
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> residence = (Map<String, Object>) mapped.get("residence");
+
+        assertEquals(1, residence.size());
+        assertEquals("COUNCIL-2", residence.get("council"));
+        assertTrue(!residence.containsKey("villageStreet"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldMapResidenceToCouncilWhenHouseholdLocationIsUnmatched() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withResidenceCodes(
+                buildServiceRow("Single"),
+                "   ",
+                "COUNCIL-3"
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> residence = (Map<String, Object>) mapped.get("residence");
+
+        assertEquals(1, residence.size());
+        assertEquals("COUNCIL-3", residence.get("council"));
+        assertTrue(!residence.containsKey("villageStreet"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldMapResidenceToCouncilWhenNoHouseholdRowIsFound() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withResidenceCodes(
+                buildServiceRow("Single"),
+                null,
+                "COUNCIL-4"
+        );
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> residence = (Map<String, Object>) mapped.get("residence");
+
+        assertEquals(1, residence.size());
+        assertEquals("COUNCIL-4", residence.get("council"));
+        assertTrue(!residence.containsKey("villageStreet"));
     }
 
     @SuppressWarnings("unchecked")
@@ -1018,6 +1090,59 @@ class IntegrationDataMapperTest {
                 serviceRow.districtCouncil(),
                 serviceRow.ward(),
                 serviceRow.healthFacility(),
+                serviceRow.village(),
+                serviceRow.counsellorName()
+        );
+    }
+
+    private OpenSrpIntegrationRepository.ServiceRow withResidenceCodes(
+            OpenSrpIntegrationRepository.ServiceRow serviceRow,
+            String householdVillageCode,
+            String providerCouncilCode
+    ) {
+        return new OpenSrpIntegrationRepository.ServiceRow(
+                serviceRow.eventId(),
+                serviceRow.baseEntityId(),
+                serviceRow.htsVisitGroup(),
+                serviceRow.visitDate(),
+                serviceRow.htsVisitDate(),
+                serviceRow.dateCreated(),
+                serviceRow.providerId(),
+                serviceRow.htsTestingApproach(),
+                serviceRow.htsVisitType(),
+                serviceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                serviceRow.htsPreviousHivstClientType(),
+                serviceRow.htsPreviousHivstTestType(),
+                serviceRow.htsPreviousHivstTestResults(),
+                serviceRow.htsClientType(),
+                serviceRow.htsTestingPoint(),
+                serviceRow.htsTypeOfCounsellingProvided(),
+                serviceRow.htsClientsTbScreeningOutcome(),
+                serviceRow.htsHasPostTestCounsellingBeenProvided(),
+                serviceRow.htsHivResultsDisclosure(),
+                serviceRow.htsWereCondomsDistributed(),
+                serviceRow.htsNumberOfMaleCondomsProvided(),
+                serviceRow.htsNumberOfFemaleCondomsProvided(),
+                serviceRow.htsPreventiveServices(),
+                serviceRow.uniqueId(),
+                serviceRow.firstName(),
+                serviceRow.middleName(),
+                serviceRow.lastName(),
+                serviceRow.phoneNumber(),
+                serviceRow.nationalId(),
+                serviceRow.voterId(),
+                serviceRow.driverLicense(),
+                serviceRow.passport(),
+                serviceRow.sex(),
+                serviceRow.birthDate(),
+                serviceRow.maritalStatus(),
+                serviceRow.pregnancyStatus(),
+                serviceRow.hfrCode(),
+                serviceRow.region(),
+                serviceRow.district(),
+                providerCouncilCode,
+                serviceRow.ward(),
+                householdVillageCode,
                 serviceRow.village(),
                 serviceRow.counsellorName()
         );

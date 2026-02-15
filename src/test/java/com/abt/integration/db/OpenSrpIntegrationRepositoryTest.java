@@ -1,5 +1,6 @@
 package com.abt.integration.db;
 
+import com.abt.integration.model.IntegrationRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -17,6 +18,35 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class OpenSrpIntegrationRepositoryTest {
+
+    @Test
+    void findServices_shouldJoinHouseholdAndSelectResidenceCodesForFallback() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        IntegrationRequest request = new IntegrationRequest();
+        request.setHfrCode("124899-6");
+        request.setStartDate(1768262400L);
+        request.setEndDate(1768262800L);
+        request.setPageIndex(1);
+        request.setPageSize(10);
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        when(connection.prepareStatement(sqlCaptor.capture())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(false);
+
+        repository.findServices(connection, request);
+
+        String sql = sqlCaptor.getValue();
+        assertTrue(sql.contains("LEFT JOIN public.household h ON h.primary_caregiver = s.base_entity_id"));
+        assertTrue(sql.contains("LEFT JOIN public.tanzania_locations hl ON hl.location_uuid = NULLIF(TRIM(h.location_id), '')"));
+        assertTrue(sql.contains("l.council_code AS provider_council_code"));
+        assertTrue(sql.contains("hl.village_code AS household_village_code"));
+    }
 
     @Test
     void findHivstTestByBaseEntity_shouldUseDynamicKitJoinAndCaseColumns() throws SQLException {
