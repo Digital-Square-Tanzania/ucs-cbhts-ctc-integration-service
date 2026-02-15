@@ -62,11 +62,14 @@ public class OpenSrpIntegrationRepository {
                 "s.hts_number_of_female_condoms_provided, s.hts_preventive_services, " +
                 "c.unique_id, c.first_name, c.middle_name, c.last_name, c.phone_number, c.national_id, c.voter_id, c.driver_license, " +
                 "c.passport, c.sex, c.birth_date, c.marital_status, c.preg_1yr, " +
-                "l.hfr_code, l.region, l.district, l.district_council, l.ward, l.health_facility, l.village, " +
+                "l.hfr_code, l.region, l.district, l.council_code AS provider_council_code, l.ward, " +
+                "hl.village_code AS household_village_code, l.village, " +
                 "COALESCE(tm.name, tm.identifier) AS counsellor_name " +
                 "FROM " + schema + ".cbhts_services s " +
                 "JOIN " + schema + ".team_members tm ON tm.identifier = s.provider_id " +
                 "JOIN " + schema + ".tanzania_locations l ON l.location_uuid = tm.location_uuid " +
+                "LEFT JOIN " + schema + ".household h ON h.primary_caregiver = s.base_entity_id " +
+                "LEFT JOIN " + schema + ".tanzania_locations hl ON hl.location_uuid = NULLIF(TRIM(h.location_id), '') " +
                 "LEFT JOIN " + schema + ".client c ON c.base_entity_id = s.base_entity_id " +
                 "WHERE l.hfr_code = ? " +
                 "AND ((s.date_created BETWEEN ? AND ?) OR (s.date_created BETWEEN ? AND ?)) " +
@@ -131,9 +134,9 @@ public class OpenSrpIntegrationRepository {
                             resultSet.getString("hfr_code"),
                             resultSet.getString("region"),
                             resultSet.getString("district"),
-                            resultSet.getString("district_council"),
+                            resultSet.getString("provider_council_code"),
                             resultSet.getString("ward"),
-                            resultSet.getString("health_facility"),
+                            resultSet.getString("household_village_code"),
                             resultSet.getString("village"),
                             resultSet.getString("counsellor_name")
                     ));

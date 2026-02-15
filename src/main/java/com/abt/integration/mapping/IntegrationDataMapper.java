@@ -265,12 +265,18 @@ public class IntegrationDataMapper {
 
     private Map<String, Object> mapResidence(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
         Map<String, Object> residence = new LinkedHashMap<>();
-        residence.put("region", serviceRow.region());
-        residence.put("district", serviceRow.district());
-        residence.put("council", serviceRow.districtCouncil());
-        residence.put("ward", serviceRow.ward());
-        residence.put("villageStreet", firstNonBlank(serviceRow.healthFacility(), serviceRow.village()));
-        residence.put("hamlet", serviceRow.village());
+
+        String villageStreet = firstNonBlank(serviceRow.healthFacility());
+        if (hasText(villageStreet)) {
+            residence.put("villageStreet", villageStreet);
+            return residence;
+        }
+
+        String council = firstNonBlank(serviceRow.districtCouncil());
+        if (hasText(council)) {
+            residence.put("council", council);
+        }
+
         return residence;
     }
 
