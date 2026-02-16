@@ -39,7 +39,7 @@ class OpenSrpIntegrationServiceTest {
         OpenSrpIntegrationService service = new OpenSrpIntegrationService(
                 connectionFactory,
                 repository,
-                new IntegrationDataMapper(),
+                new IntegrationDataMapper("false", null),
                 new IntegrationRequestValidator()
         );
 
@@ -147,7 +147,7 @@ class OpenSrpIntegrationServiceTest {
         OpenSrpIntegrationService service = new OpenSrpIntegrationService(
                 connectionFactory,
                 repository,
-                new IntegrationDataMapper(),
+                new IntegrationDataMapper("false", null),
                 new IntegrationRequestValidator()
         );
 
@@ -257,7 +257,7 @@ class OpenSrpIntegrationServiceTest {
         OpenSrpIntegrationService service = new OpenSrpIntegrationService(
                 connectionFactory,
                 repository,
-                new IntegrationDataMapper(),
+                new IntegrationDataMapper("false", null),
                 new IntegrationRequestValidator()
         );
 

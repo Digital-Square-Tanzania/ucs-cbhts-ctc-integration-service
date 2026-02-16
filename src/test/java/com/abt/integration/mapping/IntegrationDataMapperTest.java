@@ -2,6 +2,7 @@ package com.abt.integration.mapping;
 
 import com.abt.integration.db.OpenSrpIntegrationRepository;
 import com.abt.util.Utils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -17,7 +18,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class IntegrationDataMapperTest {
 
     private static final String TEST_SECRET_KEY = "unit-test-secret-key";
+    private static final String CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY_ENV_KEY =
+            "CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY";
+    private static final String ENCRYPT_DATA_ENV_KEY = "ENCRYPT_DATA";
+    private static final String MISSING_SECRET_KEY_ERROR_MESSAGE =
+            "ENCRYPT_DATA is true but CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY is missing or blank.";
     private final IntegrationDataMapper mapper = new IntegrationDataMapper("false", null);
+
+    @AfterEach
+    void clearEncryptionConfigProperties() {
+        System.clearProperty(ENCRYPT_DATA_ENV_KEY);
+        System.clearProperty(CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY_ENV_KEY);
+    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -643,15 +655,35 @@ class IntegrationDataMapperTest {
                 IllegalStateException.class,
                 () -> new IntegrationDataMapper("true", null)
         );
-        assertEquals("ENCRYPT_DATA is true but ENCRYPTION_SECRET_KEY is missing or blank.",
-                missingSecretException.getMessage());
+        assertEquals(MISSING_SECRET_KEY_ERROR_MESSAGE, missingSecretException.getMessage());
 
         IllegalStateException blankSecretException = assertThrows(
                 IllegalStateException.class,
                 () -> new IntegrationDataMapper("true", "   ")
         );
-        assertEquals("ENCRYPT_DATA is true but ENCRYPTION_SECRET_KEY is missing or blank.",
-                blankSecretException.getMessage());
+        assertEquals(MISSING_SECRET_KEY_ERROR_MESSAGE, blankSecretException.getMessage());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void constructor_shouldUseNewCbhtsPayloadEncryptionSecretKeyWhenEncryptionEnabled() throws Exception {
+        System.setProperty(ENCRYPT_DATA_ENV_KEY, "true");
+        System.setProperty(CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY_ENV_KEY, TEST_SECRET_KEY);
+
+        IntegrationDataMapper envMapper = new IntegrationDataMapper(new MappingReferenceCatalog());
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withIdentificationDocuments(
+                buildServiceRow("Single"),
+                "NAT123",
+                null,
+                null,
+                null
+        );
+
+        Map<String, Object> mapped = envMapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> clientIdentification = (Map<String, Object>) mapped.get("clientIdentification");
+        String encryptedIdCode = (String) clientIdentification.get("clientUniqueIdentifierCode");
+
+        assertEquals("NAT123", Utils.decryptDataNew(encryptedIdCode, TEST_SECRET_KEY, null));
     }
 
     @SuppressWarnings("unchecked")
