@@ -3,9 +3,11 @@ package com.abt.integration.db;
 import com.abt.integration.model.IntegrationRequest;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +19,22 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 public class OpenSrpIntegrationRepository {
+
+    private static final String VERIFICATION_LOG_TABLE = "ctc_integration.received_verification_results_log";
+    private static final String CREATE_VERIFICATION_LOG_SCHEMA_SQL = "CREATE SCHEMA IF NOT EXISTS ctc_integration";
+    private static final String CREATE_VERIFICATION_LOG_TABLE_SQL =
+            "CREATE TABLE IF NOT EXISTS " + VERIFICATION_LOG_TABLE + " (" +
+                    "\"clientCode\" VARCHAR(255) NOT NULL, " +
+                    "\"visitId\" VARCHAR(255) NOT NULL, " +
+                    "\"hfrCode\" VARCHAR(255) NOT NULL, " +
+                    "\"verificationDate\" DATE NOT NULL, " +
+                    "\"hivFinalVerificationResultCode\" VARCHAR(64) NOT NULL, " +
+                    "\"ctcId\" VARCHAR(255), " +
+                    "event_date TIMESTAMPTZ NOT NULL, " +
+                    "date_processed TIMESTAMPTZ NOT NULL, " +
+                    "created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+                    "PRIMARY KEY (\"clientCode\", \"visitId\")" +
+                    ")";
 
     private final String schema;
 
@@ -50,6 +68,49 @@ public class OpenSrpIntegrationRepository {
                 }
                 return 0L;
             }
+        }
+    }
+
+    public void ensureReceivedVerificationResultsLogTable(Connection connection) throws SQLException {
+        try (PreparedStatement createSchemaStatement = connection.prepareStatement(CREATE_VERIFICATION_LOG_SCHEMA_SQL)) {
+            createSchemaStatement.execute();
+        }
+
+        try (PreparedStatement createTableStatement = connection.prepareStatement(CREATE_VERIFICATION_LOG_TABLE_SQL)) {
+            createTableStatement.execute();
+        }
+    }
+
+    public boolean receivedVerificationResultExists(Connection connection,
+                                                    String clientCode,
+                                                    String visitId) throws SQLException {
+        String sql = "SELECT 1 FROM " + VERIFICATION_LOG_TABLE + " WHERE \"clientCode\" = ? AND \"visitId\" = ? LIMIT 1";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, clientCode);
+            statement.setString(2, visitId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    public void saveReceivedVerificationResult(Connection connection,
+                                               ReceivedVerificationResultLogEntry entry) throws SQLException {
+        String sql = "INSERT INTO " + VERIFICATION_LOG_TABLE + " (" +
+                "\"clientCode\", \"visitId\", \"hfrCode\", \"verificationDate\", \"hivFinalVerificationResultCode\", " +
+                "\"ctcId\", event_date, date_processed" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, entry.clientCode());
+            statement.setString(2, entry.visitId());
+            statement.setString(3, entry.hfrCode());
+            statement.setDate(4, Date.valueOf(entry.verificationDate()));
+            statement.setString(5, entry.hivFinalVerificationResultCode());
+            statement.setString(6, entry.ctcId());
+            statement.setTimestamp(7, new Timestamp(entry.eventDate().getTime()));
+            statement.setTimestamp(8, new Timestamp(entry.dateProcessed().getTime()));
+            statement.executeUpdate();
         }
     }
 
@@ -635,6 +696,18 @@ public class OpenSrpIntegrationRepository {
             String issueEventDate,
             String kitBatchNumber,
             String kitExpiryDate
+    ) {
+    }
+
+    public record ReceivedVerificationResultLogEntry(
+            String hfrCode,
+            String clientCode,
+            String visitId,
+            String verificationDate,
+            String hivFinalVerificationResultCode,
+            String ctcId,
+            java.util.Date eventDate,
+            java.util.Date dateProcessed
     ) {
     }
 }

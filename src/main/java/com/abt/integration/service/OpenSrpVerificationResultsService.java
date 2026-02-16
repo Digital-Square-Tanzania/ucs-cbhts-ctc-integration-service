@@ -88,12 +88,20 @@ public class OpenSrpVerificationResultsService implements VerificationResultsEnd
 
         int processedCount = request.getData().size();
         int successCount = 0;
+        int skippedCount = 0;
         List<Map<String, Object>> errors = new ArrayList<>();
 
         try (Connection connection = connectionFactory.openConnection()) {
+            repository.ensureReceivedVerificationResultsLogTable(connection);
+
             for (int index = 0; index < request.getData().size(); index++) {
                 VerificationResultsRequest.VerificationResultItem item = request.getData().get(index);
                 try {
+                    if (repository.receivedVerificationResultExists(connection, item.getClientCode(), item.getVisitId())) {
+                        skippedCount++;
+                        continue;
+                    }
+
                     Optional<OpenSrpIntegrationRepository.VerificationServiceMetadataRow> metadataOptional =
                             repository.findLatestServiceMetadataByClientCode(connection, request.getHfrCode(), item.getClientCode());
 
@@ -111,6 +119,19 @@ public class OpenSrpVerificationResultsService implements VerificationResultsEnd
                     );
 
                     if (isSuccessfulSend(sendResult)) {
+                        repository.saveReceivedVerificationResult(
+                                connection,
+                                new OpenSrpIntegrationRepository.ReceivedVerificationResultLogEntry(
+                                        request.getHfrCode(),
+                                        item.getClientCode(),
+                                        item.getVisitId(),
+                                        item.getVerificationDate(),
+                                        normalizeResult(item.getHivFinalVerificationResultCode()),
+                                        item.getCtcId(),
+                                        event.getEventDate(),
+                                        new Date()
+                                )
+                        );
                         successCount++;
                     } else {
                         errors.add(errorItem(index, item, firstNonBlank(sendResult, "Failed to send event to OpenSRP")));
@@ -127,7 +148,8 @@ public class OpenSrpVerificationResultsService implements VerificationResultsEnd
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("processedCount", processedCount);
         response.put("successCount", successCount);
-        response.put("failureCount", processedCount - successCount);
+        response.put("skippedCount", skippedCount);
+        response.put("failureCount", processedCount - successCount - skippedCount);
         response.put("errors", errors);
         return response;
     }
