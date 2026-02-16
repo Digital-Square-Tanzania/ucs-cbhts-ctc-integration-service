@@ -1,14 +1,7 @@
 package com.abt.util;
 
-import com.abt.domain.LtfClientRequest;
-import com.abt.domain.Task;
-import org.joda.time.DateTime;
-
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -16,11 +9,12 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.UUID;
 
 public class Utils {
 
-    public static String concatenateFullName(String firstName, String middleName, String surname) {
+    public static String concatenateFullName(String firstName,
+                                             String middleName,
+                                             String surname) {
         // Use a StringBuilder for efficient string concatenation
         StringBuilder fullName = new StringBuilder();
 
@@ -42,41 +36,20 @@ public class Utils {
         return fullName.toString();
     }
 
-    public static Task generateTask(LtfClientRequest request, String reasonReference) {
-        Task task = new Task();
-        DateTime now = new DateTime();
-        task.setIdentifier(UUID.randomUUID().toString());
-        task.setPlanIdentifier("5270285b-5a3b-4647-b772-c0b3c52e2b71");
-        task.setGroupIdentifier(request.getLocationId());
-        task.setStatus(Task.TaskStatus.READY);
-        task.setBusinessStatus("Referred");
-        task.setPriority(3);
-        task.setCode("Referral");
-        task.setReasonReference(reasonReference);
-
-        task.setDescription("CTC");
-
-        task.setFocus("LTFU");
-        task.setForEntity(request.getBaseEntityId());
-        task.setExecutionStartDate(now);
-        task.setAuthoredOn(now);
-        task.setLastModified(now);
-        task.setOwner(request.getProviderId());
-        task.setRequester(request.getProviderId());
-        task.setLocation(null);
-        return task;
-    }
-
     /**
      * Encrypts the given plain text using AES encryption.
      *
      * @param plainText The plain text to encrypt.
-     * @param secretKey The secret key used for encryption (if null or empty, returns an error message).
-     * @param iv        An optional initialization vector. If null or empty, a random IV is generated.
-     * @return The Base64 encoded string of the IV prepended to the ciphertext, or an error message.
+     * @param secretKey The secret key used for encryption (if null or empty,
+     *                 returns an error message).
+     * @param iv        An optional initialization vector. If null or empty,
+     *                  a random IV is generated.
+     * @return The Base64 encoded string of the IV prepended to the
+     * ciphertext, or an error message.
      * @throws Exception if an encryption error occurs.
      */
-    public static String encryptDataNew(String plainText, String secretKey, String iv) throws Exception {
+    public static String encryptDataNew(String plainText, String secretKey,
+                                        String iv) throws Exception {
         if (secretKey == null || secretKey.isEmpty()) {
             return "Error: No Key Supplied";
         }
@@ -85,7 +58,8 @@ public class Utils {
         byte[] keyBytes = truncateHashNew(secretKey, 32);
         SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
 
-        // Determine IV: either use provided value (truncated to 16 bytes) or generate a random one
+        // Determine IV: either use provided value (truncated to 16 bytes) or
+        // generate a random one
         byte[] ivBytes;
         if (iv == null || iv.isEmpty()) {
             ivBytes = new byte[16]; // AES block size is 16 bytes
@@ -104,7 +78,8 @@ public class Utils {
         byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
         byte[] cipherTextBytes = cipher.doFinal(plainTextBytes);
 
-        // Prepend the IV to the ciphertext so it can be extracted during decryption
+        // Prepend the IV to the ciphertext so it can be extracted during
+        // decryption
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(ivBytes);
         outputStream.write(cipherTextBytes);
@@ -115,15 +90,19 @@ public class Utils {
     }
 
     /**
-     * Decrypts the given encrypted text (which must be a Base64-encoded string containing the IV and ciphertext).
+     * Decrypts the given encrypted text (which must be a Base64-encoded
+     * string containing the IV and ciphertext).
      *
      * @param encryptedText The Base64-encoded encrypted text.
-     * @param secretKey     The secret key used for decryption (if null or empty, returns an error message).
-     * @param iv            An optional IV string. If null or empty, the IV is extracted from the encrypted text.
+     * @param secretKey     The secret key used for decryption (if null or
+     *                      empty, returns an error message).
+     * @param iv            An optional IV string. If null or empty, the IV
+     *                      is extracted from the encrypted text.
      * @return The decrypted plain text.
      * @throws Exception if a decryption error occurs.
      */
-    public static String decryptDataNew(String encryptedText, String secretKey, String iv){
+    public static String decryptDataNew(String encryptedText,
+                                        String secretKey, String iv) {
         try {
             if (secretKey == null || secretKey.isEmpty()) {
                 return "Error: No Key Supplied";
@@ -143,7 +122,8 @@ public class Utils {
                 // Extract the IV from the beginning of the encrypted data
                 System.arraycopy(encryptedBytes, 0, ivBytes, 0, ivBytes.length);
                 // The remainder is the actual ciphertext
-                cipherTextBytes = Arrays.copyOfRange(encryptedBytes, ivBytes.length, encryptedBytes.length);
+                cipherTextBytes = Arrays.copyOfRange(encryptedBytes,
+                        ivBytes.length, encryptedBytes.length);
             } else {
                 ivBytes = truncateHashNew(iv, 16);
                 cipherTextBytes = encryptedBytes;
@@ -157,14 +137,15 @@ public class Utils {
             // Decrypt and convert to a UTF-8 string
             byte[] plainTextBytes = cipher.doFinal(cipherTextBytes);
             return new String(plainTextBytes, StandardCharsets.UTF_8);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
     /**
-     * Mimics the VB TruncateHashNew method by generating a SHA-256 hash of the input string
+     * Mimics the VB TruncateHashNew method by generating a SHA-256 hash of
+     * the input string
      * and truncating it to the specified length.
      *
      * @param input  The input string to hash.
