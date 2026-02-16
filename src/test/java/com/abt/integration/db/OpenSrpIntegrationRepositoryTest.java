@@ -8,6 +8,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 import java.util.List;
 
@@ -15,9 +17,91 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OpenSrpIntegrationRepositoryTest {
+
+    @Test
+    void ensureReceivedVerificationResultsLogTable_shouldCreateSchemaAndTable() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement createSchemaStatement = mock(PreparedStatement.class);
+        PreparedStatement createTableStatement = mock(PreparedStatement.class);
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        when(connection.prepareStatement(sqlCaptor.capture())).thenReturn(createSchemaStatement, createTableStatement);
+
+        repository.ensureReceivedVerificationResultsLogTable(connection);
+
+        List<String> sqls = sqlCaptor.getAllValues();
+        assertEquals(2, sqls.size());
+        assertTrue(sqls.get(0).contains("CREATE SCHEMA IF NOT EXISTS ctc_integration"));
+        assertTrue(sqls.get(1).contains("CREATE TABLE IF NOT EXISTS ctc_integration.received_verification_results_log"));
+        assertTrue(sqls.get(1).contains("PRIMARY KEY (\"clientCode\", \"visitId\")"));
+        verify(createSchemaStatement).execute();
+        verify(createTableStatement).execute();
+    }
+
+    @Test
+    void receivedVerificationResultExists_shouldCheckByClientCodeAndVisitId() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        when(connection.prepareStatement(sqlCaptor.capture())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true);
+
+        boolean exists = repository.receivedVerificationResultExists(connection, "CLT123456", "VISIT-1");
+
+        assertTrue(exists);
+        assertTrue(sqlCaptor.getValue().contains("FROM ctc_integration.received_verification_results_log"));
+        assertTrue(sqlCaptor.getValue().contains("WHERE \"clientCode\" = ? AND \"visitId\" = ?"));
+        verify(statement).setString(1, "CLT123456");
+        verify(statement).setString(2, "VISIT-1");
+    }
+
+    @Test
+    void saveReceivedVerificationResult_shouldInsertLogRecord() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        when(connection.prepareStatement(sqlCaptor.capture())).thenReturn(statement);
+
+        Date eventDate = Date.from(Instant.parse("2026-01-01T10:15:30Z"));
+        Date processedDate = Date.from(Instant.parse("2026-01-01T10:16:00Z"));
+        OpenSrpIntegrationRepository.ReceivedVerificationResultLogEntry entry =
+                new OpenSrpIntegrationRepository.ReceivedVerificationResultLogEntry(
+                        "12123-1",
+                        "CLT123456",
+                        "VISIT-1",
+                        "2026-01-01",
+                        "POSITIVE",
+                        "CTC-1",
+                        eventDate,
+                        processedDate
+                );
+
+        repository.saveReceivedVerificationResult(connection, entry);
+
+        String sql = sqlCaptor.getValue();
+        assertTrue(sql.contains("INSERT INTO ctc_integration.received_verification_results_log"));
+        assertTrue(sql.contains("\"clientCode\", \"visitId\", \"hfrCode\", \"verificationDate\""));
+        verify(statement).setString(1, "CLT123456");
+        verify(statement).setString(2, "VISIT-1");
+        verify(statement).setString(3, "12123-1");
+        verify(statement).setString(5, "POSITIVE");
+        verify(statement).setString(6, "CTC-1");
+        verify(statement).executeUpdate();
+    }
 
     @Test
     void findLatestServiceMetadataByClientCode_shouldQueryLatestRecordByClientCodeAndHfrCode() throws SQLException {

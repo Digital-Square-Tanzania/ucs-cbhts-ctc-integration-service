@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +69,10 @@ class OpenSrpVerificationResultsServiceTest {
                 );
 
         when(connectionFactory.openConnection()).thenReturn(connection);
+        when(repository.receivedVerificationResultExists(connection, "CLT123456", "B0452823-F078-4CAC-8746-4A11733E942A"))
+                .thenReturn(false);
+        when(repository.receivedVerificationResultExists(connection, "CLT000000", "B0452823-F078-4CAC-8746-4A11733E942B"))
+                .thenReturn(false);
         when(repository.findLatestServiceMetadataByClientCode(connection, "12123-1", "CLT123456"))
                 .thenReturn(java.util.Optional.of(metadataRow));
         when(repository.findLatestServiceMetadataByClientCode(connection, "12123-1", "CLT000000"))
@@ -79,6 +84,7 @@ class OpenSrpVerificationResultsServiceTest {
 
         assertEquals(2, response.get("processedCount"));
         assertEquals(1, response.get("successCount"));
+        assertEquals(0, response.get("skippedCount"));
         assertEquals(1, response.get("failureCount"));
 
         List<Map<String, Object>> errors = (List<Map<String, Object>>) response.get("errors");
@@ -87,6 +93,7 @@ class OpenSrpVerificationResultsServiceTest {
 
         ArgumentCaptor<EventRequest> requestCaptor = ArgumentCaptor.forClass(EventRequest.class);
         verify(eventSender).send(requestCaptor.capture(), eq("http://opensrp/events"), eq("user"), eq("pass"));
+        verify(repository).saveReceivedVerificationResult(eq(connection), any(OpenSrpIntegrationRepository.ReceivedVerificationResultLogEntry.class));
 
         Event sentEvent = requestCaptor.getValue().getEvents().get(0);
         assertEquals("HIV Verification Test Results", sentEvent.getEventType());
@@ -127,6 +134,8 @@ class OpenSrpVerificationResultsServiceTest {
                 );
 
         when(connectionFactory.openConnection()).thenReturn(connection);
+        when(repository.receivedVerificationResultExists(connection, "CLT123456", "VISIT-1"))
+                .thenReturn(false);
         when(repository.findLatestServiceMetadataByClientCode(connection, "12123-1", "CLT123456"))
                 .thenReturn(java.util.Optional.of(metadataRow));
         when(eventSender.send(any(EventRequest.class), eq("http://opensrp/events"), eq("user"), eq("pass")))
@@ -136,11 +145,13 @@ class OpenSrpVerificationResultsServiceTest {
 
         assertEquals(1, response.get("processedCount"));
         assertEquals(0, response.get("successCount"));
+        assertEquals(0, response.get("skippedCount"));
         assertEquals(1, response.get("failureCount"));
 
         List<Map<String, Object>> errors = (List<Map<String, Object>>) response.get("errors");
         assertEquals(1, errors.size());
         assertTrue(((String) errors.get(0).get("message")).contains("Error"));
+        verify(repository, never()).saveReceivedVerificationResult(eq(connection), any(OpenSrpIntegrationRepository.ReceivedVerificationResultLogEntry.class));
     }
 
     @Test
@@ -159,6 +170,92 @@ class OpenSrpVerificationResultsServiceTest {
         request.setHfrCode(null);
 
         assertThrows(ValidationException.class, () -> service.process(request));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void process_shouldSkipDuplicateResultWithoutSendingEvent() throws SQLException {
+        OpenSrpVerificationResultsService service = new OpenSrpVerificationResultsService(
+                connectionFactory,
+                repository,
+                new VerificationResultsRequestValidator(),
+                eventSender,
+                "http://opensrp/events",
+                "user",
+                "pass"
+        );
+
+        VerificationResultsRequest request = new VerificationResultsRequest();
+        request.setHfrCode("12123-1");
+        request.setData(List.of(buildItem("CLT123456", "2026-01-01", "POSITIVE", "CTC-1", "VISIT-1")));
+
+        when(connectionFactory.openConnection()).thenReturn(connection);
+        when(repository.receivedVerificationResultExists(connection, "CLT123456", "VISIT-1"))
+                .thenReturn(true);
+
+        Map<String, Object> response = service.process(request);
+
+        assertEquals(1, response.get("processedCount"));
+        assertEquals(0, response.get("successCount"));
+        assertEquals(1, response.get("skippedCount"));
+        assertEquals(0, response.get("failureCount"));
+        assertEquals(0, ((List<Map<String, Object>>) response.get("errors")).size());
+
+        verify(eventSender, never()).send(any(EventRequest.class), eq("http://opensrp/events"), eq("user"), eq("pass"));
+        verify(repository, never()).findLatestServiceMetadataByClientCode(connection, "12123-1", "CLT123456");
+        verify(repository, never()).saveReceivedVerificationResult(eq(connection), any(OpenSrpIntegrationRepository.ReceivedVerificationResultLogEntry.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void process_shouldHandleMixedDuplicateAndNewResults() throws SQLException {
+        OpenSrpVerificationResultsService service = new OpenSrpVerificationResultsService(
+                connectionFactory,
+                repository,
+                new VerificationResultsRequestValidator(),
+                eventSender,
+                "http://opensrp/events",
+                "user",
+                "pass"
+        );
+
+        VerificationResultsRequest request = new VerificationResultsRequest();
+        request.setHfrCode("12123-1");
+        request.setData(List.of(
+                buildItem("CLT123456", "2026-01-01", "POSITIVE", "CTC-1", "VISIT-1"),
+                buildItem("CLT999999", "2026-01-02", "NEGATIVE", "CTC-2", "VISIT-2")
+        ));
+
+        OpenSrpIntegrationRepository.VerificationServiceMetadataRow metadataRow =
+                new OpenSrpIntegrationRepository.VerificationServiceMetadataRow(
+                        "base-2",
+                        "provider-2",
+                        "Team B",
+                        "team-2",
+                        "loc-2",
+                        "ec_client"
+                );
+
+        when(connectionFactory.openConnection()).thenReturn(connection);
+        when(repository.receivedVerificationResultExists(connection, "CLT123456", "VISIT-1"))
+                .thenReturn(true);
+        when(repository.receivedVerificationResultExists(connection, "CLT999999", "VISIT-2"))
+                .thenReturn(false);
+        when(repository.findLatestServiceMetadataByClientCode(connection, "12123-1", "CLT999999"))
+                .thenReturn(java.util.Optional.of(metadataRow));
+        when(eventSender.send(any(EventRequest.class), eq("http://opensrp/events"), eq("user"), eq("pass")))
+                .thenReturn("sending successful");
+
+        Map<String, Object> response = service.process(request);
+
+        assertEquals(2, response.get("processedCount"));
+        assertEquals(1, response.get("successCount"));
+        assertEquals(1, response.get("skippedCount"));
+        assertEquals(0, response.get("failureCount"));
+        assertEquals(0, ((List<Map<String, Object>>) response.get("errors")).size());
+
+        verify(eventSender).send(any(EventRequest.class), eq("http://opensrp/events"), eq("user"), eq("pass"));
+        verify(repository).saveReceivedVerificationResult(eq(connection), any(OpenSrpIntegrationRepository.ReceivedVerificationResultLogEntry.class));
     }
 
     private VerificationResultsRequest buildRequest() {
