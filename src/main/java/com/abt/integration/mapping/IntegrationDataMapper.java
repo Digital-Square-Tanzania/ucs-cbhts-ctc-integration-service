@@ -1,6 +1,7 @@
 package com.abt.integration.mapping;
 
 import com.abt.integration.db.OpenSrpIntegrationRepository;
+import com.abt.util.Utils;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,6 +23,8 @@ import java.util.TreeSet;
 public class IntegrationDataMapper {
 
     private static final String DEFAULT_NOT_APPLICABLE_VALUE = "NOT_APPLICABLE";
+    private static final String ENCRYPT_DATA_ENV_KEY = "ENCRYPT_DATA";
+    private static final String ENCRYPTION_SECRET_KEY_ENV_KEY = "ENCRYPTION_SECRET_KEY";
 
     private static final Map<String, String> MARITAL_ALIASES = aliases(
             "single", "SINGLE",
@@ -135,13 +138,38 @@ public class IntegrationDataMapper {
     private static final Set<String> SELF_TEST_MARKERS = Set.of("SELF", "HIVST", "STO", "STB", "SELF_TEST");
 
     private final MappingReferenceCatalog catalog;
+    private final boolean encryptDataEnabled;
+    private final String encryptionSecretKey;
 
     public IntegrationDataMapper() {
-        this(new MappingReferenceCatalog());
+        this(
+                new MappingReferenceCatalog(),
+                System.getenv(ENCRYPT_DATA_ENV_KEY),
+                System.getenv(ENCRYPTION_SECRET_KEY_ENV_KEY)
+        );
     }
 
     public IntegrationDataMapper(MappingReferenceCatalog catalog) {
+        this(
+                catalog,
+                System.getenv(ENCRYPT_DATA_ENV_KEY),
+                System.getenv(ENCRYPTION_SECRET_KEY_ENV_KEY)
+        );
+    }
+
+    public IntegrationDataMapper(String encryptDataConfigValue, String encryptionSecretKey) {
+        this(new MappingReferenceCatalog(), encryptDataConfigValue, encryptionSecretKey);
+    }
+
+    public IntegrationDataMapper(MappingReferenceCatalog catalog,
+                                 String encryptDataConfigValue,
+                                 String encryptionSecretKey) {
         this.catalog = catalog;
+        this.encryptDataEnabled = isEncryptionEnabled(encryptDataConfigValue);
+        if (this.encryptDataEnabled && isBlank(encryptionSecretKey)) {
+            throw new IllegalStateException("ENCRYPT_DATA is true but ENCRYPTION_SECRET_KEY is missing or blank.");
+        }
+        this.encryptionSecretKey = encryptionSecretKey;
     }
 
     public Map<String, Object> mapServiceRow(OpenSrpIntegrationRepository.ServiceRow serviceRow,
@@ -227,17 +255,31 @@ public class IntegrationDataMapper {
 
     private Map<String, Object> buildClientIdentification(String idType, String idValue) {
         Map<String, Object> clientIdentification = new LinkedHashMap<>();
-        clientIdentification.put("clientUniqueIdentifierType", idType);
-        clientIdentification.put("clientUniqueIdentifierCode", idValue);
+        clientIdentification.put("clientUniqueIdentifierType",
+                maybeEncrypt(idType, "clientUniqueIdentifierType"));
+        clientIdentification.put("clientUniqueIdentifierCode",
+                maybeEncrypt(idValue, "clientUniqueIdentifierCode"));
         return clientIdentification;
     }
 
     private Map<String, Object> mapClientName(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
         Map<String, Object> clientName = new LinkedHashMap<>();
-        clientName.put("firstName", serviceRow.firstName());
-        clientName.put("middleName", serviceRow.middleName());
-        clientName.put("lastName", serviceRow.lastName());
+        clientName.put("firstName", maybeEncrypt(serviceRow.firstName(), "firstName"));
+        clientName.put("middleName", maybeEncrypt(serviceRow.middleName(), "middleName"));
+        clientName.put("lastName", maybeEncrypt(serviceRow.lastName(), "lastName"));
         return clientName;
+    }
+
+    private String maybeEncrypt(String value, String fieldName) {
+        if (!encryptDataEnabled || isBlank(value)) {
+            return value;
+        }
+
+        try {
+            return Utils.encryptDataNew(value, encryptionSecretKey, null);
+        } catch (Exception exception) {
+            throw new IllegalStateException("Failed to encrypt field '" + fieldName + "'.", exception);
+        }
     }
 
     private Map<String, Object> mapDemographics(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
@@ -754,6 +796,10 @@ public class IntegrationDataMapper {
 
     private boolean hasText(String value) {
         return !isBlank(value);
+    }
+
+    private boolean isEncryptionEnabled(String rawValue) {
+        return rawValue != null && "true".equalsIgnoreCase(rawValue.trim());
     }
 
     private boolean isBlank(String value) {
