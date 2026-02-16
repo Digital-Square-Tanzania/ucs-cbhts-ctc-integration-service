@@ -23,6 +23,8 @@ dependencies {
     implementation "com.typesafe.akka:akka-actor-typed_${scalaBinaryVersion}:${akkaVersion}"
     implementation "com.typesafe.akka:akka-stream_${scalaBinaryVersion}:${akkaVersion}"
     implementation "com.typesafe.akka:akka-http-jackson_${scalaBinaryVersion}:${akkaHttpVersion}"
+    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+    implementation 'com.googlecode.libphonenumber:libphonenumber:8.2.0'
     implementation 'ch.qos.logback:logback-classic:1.2.13'
     testImplementation "com.typesafe.akka:akka-http-testkit_${scalaBinaryVersion}:${akkaHttpVersion}"
     testImplementation "com.typesafe.akka:akka-actor-testkit-typed_${scalaBinaryVersion}:${akkaVersion}"

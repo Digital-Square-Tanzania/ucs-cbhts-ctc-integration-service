@@ -1,5 +1,9 @@
 package com.abt.util;
 
+import com.abt.domain.LtfClientRequest;
+import com.abt.domain.Task;
+import org.joda.time.DateTime;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -9,6 +13,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.UUID;
 
 public class Utils {
 
@@ -34,6 +39,29 @@ public class Utils {
         }
 
         return fullName.toString();
+    }
+
+    public static Task generateTask(LtfClientRequest request, String reasonReference) {
+        Task task = new Task();
+        DateTime now = new DateTime();
+        task.setIdentifier(UUID.randomUUID().toString());
+        task.setPlanIdentifier("5270285b-5a3b-4647-b772-c0b3c52e2b71");
+        task.setGroupIdentifier(request.getLocationId());
+        task.setStatus(Task.TaskStatus.READY);
+        task.setBusinessStatus("Referred");
+        task.setPriority(3);
+        task.setCode("Referral");
+        task.setReasonReference(reasonReference);
+        task.setDescription("CTC");
+        task.setFocus("LTFU");
+        task.setForEntity(request.getBaseEntityId());
+        task.setExecutionStartDate(now);
+        task.setAuthoredOn(now);
+        task.setLastModified(now);
+        task.setOwner(request.getProviderId());
+        task.setRequester(request.getProviderId());
+        task.setLocation(null);
+        return task;
     }
 
     /**

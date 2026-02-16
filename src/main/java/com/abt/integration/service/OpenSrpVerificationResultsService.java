@@ -7,6 +7,7 @@ import com.abt.integration.config.PostgresConnectionFactory;
 import com.abt.integration.db.OpenSrpIntegrationRepository;
 import com.abt.integration.exception.ValidationException;
 import com.abt.integration.model.VerificationResultsRequest;
+import com.abt.util.EnvConfig;
 import com.abt.integration.validation.VerificationResultsRequestValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ public class OpenSrpVerificationResultsService implements VerificationResultsEnd
     private static final Logger log = LoggerFactory.getLogger(OpenSrpVerificationResultsService.class);
 
     private static final String HIV_VERIFICATION_EVENT_TYPE = "HIV Verification Test Results";
+    private static final String OPENSRP_EVENT_PATH = "/opensrp/rest/event/add";
     private static final String DEFAULT_ENTITY_TYPE = "ec_client";
     private static final int CLIENT_DATABASE_VERSION = 17;
     private static final int CLIENT_APPLICATION_VERSION = 2;
@@ -51,9 +53,9 @@ public class OpenSrpVerificationResultsService implements VerificationResultsEnd
                 dependencies.repository(),
                 new VerificationResultsRequestValidator(),
                 new DefaultOpenSrpEventSender(),
-                firstNonBlank(System.getenv("OPENSRP_SERVER_EVENT_URL"), System.getenv("OPENSRP_SERVER_URL")),
-                System.getenv("OPENSRP_SERVER_USERNAME"),
-                System.getenv("OPENSRP_SERVER_PASSWORD")
+                resolveOpenSrpEventUrl(),
+                EnvConfig.getFirstOrDefault(null, "OPENSRP_SERVER_USERNAME"),
+                EnvConfig.getFirstOrDefault(null, "OPENSRP_SERVER_PASSWORD")
         );
     }
 
@@ -232,6 +234,28 @@ public class OpenSrpVerificationResultsService implements VerificationResultsEnd
             return first;
         }
         return second;
+    }
+
+    private static String resolveOpenSrpEventUrl() {
+        String eventUrl = EnvConfig.getFirstOrDefault(null, "OPENSRP_SERVER_EVENT_URL");
+        if (!isBlank(eventUrl)) {
+            return eventUrl;
+        }
+
+        String serverUrl = EnvConfig.getFirstOrDefault(null, "OPENSRP_SERVER_URL");
+        if (isBlank(serverUrl)) {
+            return null;
+        }
+
+        String normalizedUrl = serverUrl.trim();
+        while (normalizedUrl.endsWith("/")) {
+            normalizedUrl = normalizedUrl.substring(0, normalizedUrl.length() - 1);
+        }
+
+        if (normalizedUrl.toLowerCase(Locale.ROOT).endsWith(OPENSRP_EVENT_PATH)) {
+            return normalizedUrl;
+        }
+        return normalizedUrl + OPENSRP_EVENT_PATH;
     }
 
     private static boolean hasText(String value) {

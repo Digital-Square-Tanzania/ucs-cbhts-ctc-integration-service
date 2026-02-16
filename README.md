@@ -4,6 +4,7 @@ This service exposes integration APIs used to:
 
 1. Extract and transform CBHTS/CTC OpenSRP data into the HTS integration payload shape.
 2. Receive HIV verification outcomes and forward them to OpenSRP as events.
+3. Receive CTC LTF/MISSAP and index-contact payloads and forward mapped clients/events/tasks to OpenSRP.
 
 The service is built with Java 17, Akka HTTP, and Gradle.
 
@@ -29,7 +30,7 @@ Client
       -> Service Layer
         -> PostgreSQL Repository (read)
         -> Data Mapper (shape + normalize + optional encryption)
-        -> OpenSRP Event Sender (verification endpoint only)
+        -> OpenSRP Event/Task Sender
   <- JSON Response
 ```
 
@@ -37,7 +38,7 @@ Client
 
 - `src/main/java/com/abt/UcsCbhtsCtsIntegrationServiceApp.java`
   - Application entrypoint.
-  - Starts Akka HTTP server using `integration-service.service-host` and `integration-service.service-port`.
+  - Starts Akka HTTP server using `INTEGRATION_SERVICE_HOST` and `INTEGRATION_SERVICE_PORT` (loaded from env or `.env`).
 
 - `src/main/java/com/abt/UcsCbhtsCtsIntegrationRoutes.java`
   - Exposes:
@@ -45,6 +46,12 @@ Client
     - `POST /integration/ctc2hts`
     - `POST /integration/verification-results`
   - Converts validation failures to `400` and unexpected failures to `500`.
+
+- `src/main/java/com/abt/UcsCtcIntegrationRoutes.java`
+  - Exposes:
+    - `POST /send-ltf-missap-clients`
+    - `POST /send-index-contacts`
+  - Uses actor-based processing and returns `400` when downstream response description contains `error`.
 
 - `src/main/java/com/abt/integration/service/OpenSrpIntegrationService.java`
   - Handles `/integration/ctc2hts` requests.
@@ -193,6 +200,73 @@ Success response:
 
 Partial failures are returned in the `errors` array with item index and message.
 
+### 4) Send LTF/MISSAP Clients
+
+`POST /send-ltf-missap-clients`
+
+Representative request body:
+
+```json
+{
+  "team_id": "team-id",
+  "team": "Team A",
+  "location_id": "location-id",
+  "provider_id": "provider-id",
+  "rec_guid": "REC-GUID",
+  "ctc_number": "12345678",
+  "hfr_code": "124899-6",
+  "last_appointment_date": "2026-01-01",
+  "client_first_name": "encrypted-first-name",
+  "client_middle_name": "encrypted-middle-name",
+  "client_last_name": "encrypted-last-name",
+  "client_phone_number": "encrypted-phone",
+  "client_sex": "M",
+  "client_dob": "1990-01-01"
+}
+```
+
+Success response (`200`):
+
+```json
+{
+  "response": {
+    "description": "sending successful",
+    "unique_id": "generated-opensrp-id",
+    "base_entity_id": "generated-base-entity-id"
+  }
+}
+```
+
+### 5) Send Index Contacts
+
+`POST /send-index-contacts`
+
+Representative request body:
+
+```json
+{
+  "team_id": "team-id",
+  "team": "Team A",
+  "location_id": "location-id",
+  "provider_id": "provider-id",
+  "rec_guid": "REC-GUID",
+  "ctc_unique_id": "ctc-uid",
+  "elicitation_date": "2026-01-01",
+  "first_name": "encrypted-first-name",
+  "middle_name": "encrypted-middle-name",
+  "last_name": "encrypted-last-name",
+  "sex": "F",
+  "dob": "1994-02-01",
+  "primary_phone_number": "encrypted-primary-phone",
+  "alternative_phone_number": "encrypted-alt-phone",
+  "notification_method": "CR",
+  "relationship": "SP",
+  "ctc_number": "12345678"
+}
+```
+
+Success response (`200`) has the same shape as `/send-ltf-missap-clients`.
+
 ### Error Responses
 
 Validation errors return HTTP `400`:
@@ -252,6 +326,55 @@ curl --request POST "http://127.0.0.1:8080/integration/verification-results" \
   }'
 ```
 
+LTF/MISSAP forwarding:
+
+```bash
+curl --request POST "http://127.0.0.1:8080/send-ltf-missap-clients" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "team_id": "team-id",
+    "team": "Team A",
+    "location_id": "location-id",
+    "provider_id": "provider-id",
+    "rec_guid": "REC-GUID",
+    "ctc_number": "12345678",
+    "hfr_code": "124899-6",
+    "last_appointment_date": "2026-01-01",
+    "client_first_name": "encrypted-first-name",
+    "client_middle_name": "encrypted-middle-name",
+    "client_last_name": "encrypted-last-name",
+    "client_phone_number": "encrypted-phone",
+    "client_sex": "M",
+    "client_dob": "1990-01-01"
+  }'
+```
+
+Index contacts forwarding:
+
+```bash
+curl --request POST "http://127.0.0.1:8080/send-index-contacts" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "team_id": "team-id",
+    "team": "Team A",
+    "location_id": "location-id",
+    "provider_id": "provider-id",
+    "rec_guid": "REC-GUID",
+    "ctc_unique_id": "ctc-uid",
+    "elicitation_date": "2026-01-01",
+    "first_name": "encrypted-first-name",
+    "middle_name": "encrypted-middle-name",
+    "last_name": "encrypted-last-name",
+    "sex": "F",
+    "dob": "1994-02-01",
+    "primary_phone_number": "encrypted-primary-phone",
+    "alternative_phone_number": "encrypted-alt-phone",
+    "notification_method": "CR",
+    "relationship": "SP",
+    "ctc_number": "12345678"
+  }'
+```
+
 ## Configuration
 
 Copy `.env-sample` and adjust values:
@@ -275,10 +398,14 @@ set +a
 | `OPENSRP_DB_USER` | Usually | None | PostgreSQL username. |
 | `OPENSRP_DB_PASSWORD` | Usually | None | PostgreSQL password. |
 | `OPENSRP_DB_SSLMODE` | No | None | Optional SSL mode (`disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full`). |
-| `OPENSRP_SERVER_EVENT_URL` | Yes for verification endpoint | None | Destination URL for OpenSRP event posting. |
-| `OPENSRP_SERVER_URL` | Fallback | None | Fallback URL if `OPENSRP_SERVER_EVENT_URL` is unset. |
-| `OPENSRP_SERVER_USERNAME` | No | None | Basic auth username for event posting. |
-| `OPENSRP_SERVER_PASSWORD` | No | None | Basic auth password for event posting. |
+| `OPENSRP_SERVER_EVENT_URL` | Yes for verification and `/send-*` endpoints | None | OpenSRP event endpoint URL (for example `http://host:8080/opensrp/rest/event/add`). `/send-*` endpoints derive the OpenSRP base URL from this value. |
+| `OPENSRP_SERVER_URL` | Fallback | None | Fallback OpenSRP base URL used when `OPENSRP_SERVER_EVENT_URL` is unset. |
+| `OPENSRP_SERVER_USERNAME` | No | None | Basic auth username used by verification and `/send-*` forwarding. |
+| `OPENSRP_SERVER_PASSWORD` | No | None | Basic auth password used by verification and `/send-*` forwarding. |
+| `INTEGRATION_SERVICE_SECRET_KEY` | Yes for `/send-*` endpoints | `secret-key` | Secret key used to decrypt inbound encrypted fields for CTC forwarding endpoints. |
+| `INTEGRATION_SERVICE_HOST` | No | `127.0.0.1` | HTTP bind host for this service. |
+| `INTEGRATION_SERVICE_PORT` | No | `8080` | HTTP bind port for this service. |
+| `INTEGRATION_SERVICE_ROUTES_ASK_TIMEOUT` | No | `60s` | Ask timeout used by actor-backed `/send-*` endpoints. |
 | `ENCRYPT_DATA` | No | `false` behavior | Enables identity/name encryption only when value is exactly `true` (case-insensitive). |
 | `ENCRYPTION_SECRET_KEY` | Conditionally | None | Required and non-blank when `ENCRYPT_DATA=true`. |
 
@@ -319,12 +446,12 @@ Implementation details:
 
 Generated artifact:
 
-`build/libs/ucs-ctc-integration-service-1.0.0.jar`
+`build/libs/ucs-cbhts-ctc-integration-service-1.0.0.jar`
 
 ### Run service
 
 ```bash
-java -jar build/libs/ucs-ctc-integration-service-1.0.0.jar
+java -jar build/libs/ucs-cbhts-ctc-integration-service-1.0.0.jar
 ```
 
 Default bind address:
@@ -332,7 +459,7 @@ Default bind address:
 - Host: `127.0.0.1`
 - Port: `8080`
 
-Configured in `src/main/resources/application.conf`.
+Configured via `INTEGRATION_SERVICE_HOST` and `INTEGRATION_SERVICE_PORT` (see `.env-sample`).
 
 ## Docker Deployment
 
@@ -355,6 +482,9 @@ docker run -d \
   -e OPENSRP_DB_USER=<db_user> \
   -e OPENSRP_DB_PASSWORD=<db_password> \
   -e OPENSRP_SERVER_EVENT_URL=http://host.docker.internal:8080/opensrp/rest/event/add \
+  -e OPENSRP_SERVER_USERNAME=<opensrp_user> \
+  -e OPENSRP_SERVER_PASSWORD=<opensrp_password> \
+  -e INTEGRATION_SERVICE_SECRET_KEY=<secret_key> \
   ucs-cbhts-ctc-integration-service
 ```
 
