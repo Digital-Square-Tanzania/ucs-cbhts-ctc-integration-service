@@ -20,6 +20,8 @@ public class UcsCbhtsCtsIntegrationServiceApp {
     private static final String DEFAULT_HOST = "127.0.0.1";
     private static final int DEFAULT_PORT = 8080;
     private static final String DEFAULT_SECRET_KEY = "secret-key";
+    private static final String LTF_INDEX_PAYLOAD_ENCRYPTION_SECRET_KEY_ENV_KEY =
+            "LTF_INDEX_PAYLOAD_ENCRYPTION_SECRET_KEY";
 
     static void startHttpServer(Route route, ActorSystem<?> system) {
         String host = EnvConfig.getOrDefault("INTEGRATION_SERVICE_HOST", DEFAULT_HOST);
@@ -42,7 +44,14 @@ public class UcsCbhtsCtsIntegrationServiceApp {
     }
 
     private static void initializeSecretKey() {
-        SECRETE_KEY = EnvConfig.getOrDefault("INTEGRATION_SERVICE_SECRET_KEY", DEFAULT_SECRET_KEY);
+        SECRETE_KEY = resolveLtfIndexPayloadEncryptionSecretKey();
+    }
+
+    static String resolveLtfIndexPayloadEncryptionSecretKey() {
+        return EnvConfig.getOrDefault(
+                LTF_INDEX_PAYLOAD_ENCRYPTION_SECRET_KEY_ENV_KEY,
+                DEFAULT_SECRET_KEY
+        );
     }
 
     public static void main(String[] args) {

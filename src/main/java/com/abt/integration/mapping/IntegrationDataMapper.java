@@ -1,6 +1,7 @@
 package com.abt.integration.mapping;
 
 import com.abt.integration.db.OpenSrpIntegrationRepository;
+import com.abt.util.EnvConfig;
 import com.abt.util.Utils;
 
 import java.time.Instant;
@@ -24,7 +25,8 @@ public class IntegrationDataMapper {
 
     private static final String DEFAULT_NOT_APPLICABLE_VALUE = "NOT_APPLICABLE";
     private static final String ENCRYPT_DATA_ENV_KEY = "ENCRYPT_DATA";
-    private static final String ENCRYPTION_SECRET_KEY_ENV_KEY = "ENCRYPTION_SECRET_KEY";
+    private static final String CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY_ENV_KEY =
+            "CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY";
 
     private static final Map<String, String> MARITAL_ALIASES = aliases(
             "single", "SINGLE",
@@ -144,16 +146,16 @@ public class IntegrationDataMapper {
     public IntegrationDataMapper() {
         this(
                 new MappingReferenceCatalog(),
-                System.getenv(ENCRYPT_DATA_ENV_KEY),
-                System.getenv(ENCRYPTION_SECRET_KEY_ENV_KEY)
+                EnvConfig.getOrDefault(ENCRYPT_DATA_ENV_KEY, null),
+                EnvConfig.getOrDefault(CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY_ENV_KEY, null)
         );
     }
 
     public IntegrationDataMapper(MappingReferenceCatalog catalog) {
         this(
                 catalog,
-                System.getenv(ENCRYPT_DATA_ENV_KEY),
-                System.getenv(ENCRYPTION_SECRET_KEY_ENV_KEY)
+                EnvConfig.getOrDefault(ENCRYPT_DATA_ENV_KEY, null),
+                EnvConfig.getOrDefault(CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY_ENV_KEY, null)
         );
     }
 
@@ -167,7 +169,7 @@ public class IntegrationDataMapper {
         this.catalog = catalog;
         this.encryptDataEnabled = isEncryptionEnabled(encryptDataConfigValue);
         if (this.encryptDataEnabled && isBlank(encryptionSecretKey)) {
-            throw new IllegalStateException("ENCRYPT_DATA is true but ENCRYPTION_SECRET_KEY is missing or blank.");
+            throw new IllegalStateException("ENCRYPT_DATA is true but CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY is missing or blank.");
         }
         this.encryptionSecretKey = encryptionSecretKey;
     }
