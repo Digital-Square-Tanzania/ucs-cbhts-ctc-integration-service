@@ -1,6 +1,7 @@
 package com.abt.integration.mapping;
 
 import com.abt.integration.db.OpenSrpIntegrationRepository;
+import com.abt.util.Utils;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -9,11 +10,14 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IntegrationDataMapperTest {
 
-    private final IntegrationDataMapper mapper = new IntegrationDataMapper();
+    private static final String TEST_SECRET_KEY = "unit-test-secret-key";
+    private final IntegrationDataMapper mapper = new IntegrationDataMapper("false", null);
 
     @SuppressWarnings("unchecked")
     @Test
@@ -524,6 +528,130 @@ class IntegrationDataMapperTest {
 
         List<Object> clientIdentification = (List<Object>) mapped.get("clientIdentification");
         assertTrue(clientIdentification.isEmpty());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldEncryptTargetIdentityFieldsWhenEncryptionEnabled() {
+        IntegrationDataMapper encryptedMapper = new IntegrationDataMapper("TrUe", TEST_SECRET_KEY);
+
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withIdentificationDocuments(
+                buildServiceRow("Single"),
+                "NAT123",
+                null,
+                null,
+                null
+        );
+
+        Map<String, Object> mapped = encryptedMapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> clientIdentification = (Map<String, Object>) mapped.get("clientIdentification");
+        Map<String, Object> clientName = (Map<String, Object>) mapped.get("clientName");
+
+        String encryptedIdType = (String) clientIdentification.get("clientUniqueIdentifierType");
+        String encryptedIdCode = (String) clientIdentification.get("clientUniqueIdentifierCode");
+        String encryptedFirstName = (String) clientName.get("firstName");
+        String encryptedMiddleName = (String) clientName.get("middleName");
+        String encryptedLastName = (String) clientName.get("lastName");
+
+        assertNotEquals("NIDA", encryptedIdType);
+        assertNotEquals("NAT123", encryptedIdCode);
+        assertNotEquals("Asha", encryptedFirstName);
+        assertNotEquals("Salum", encryptedMiddleName);
+        assertNotEquals("Hassan", encryptedLastName);
+
+        assertEquals("NIDA", Utils.decryptDataNew(encryptedIdType, TEST_SECRET_KEY, null));
+        assertEquals("NAT123", Utils.decryptDataNew(encryptedIdCode, TEST_SECRET_KEY, null));
+        assertEquals("Asha", Utils.decryptDataNew(encryptedFirstName, TEST_SECRET_KEY, null));
+        assertEquals("Salum", Utils.decryptDataNew(encryptedMiddleName, TEST_SECRET_KEY, null));
+        assertEquals("Hassan", Utils.decryptDataNew(encryptedLastName, TEST_SECRET_KEY, null));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldLeaveTargetIdentityFieldsAsPlaintextWhenEncryptionDisabled() {
+        IntegrationDataMapper disabledMapper = new IntegrationDataMapper("false", TEST_SECRET_KEY);
+
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withIdentificationDocuments(
+                buildServiceRow("Single"),
+                "NAT123",
+                null,
+                null,
+                null
+        );
+
+        Map<String, Object> mapped = disabledMapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> clientIdentification = (Map<String, Object>) mapped.get("clientIdentification");
+        Map<String, Object> clientName = (Map<String, Object>) mapped.get("clientName");
+
+        assertEquals("NIDA", clientIdentification.get("clientUniqueIdentifierType"));
+        assertEquals("NAT123", clientIdentification.get("clientUniqueIdentifierCode"));
+        assertEquals("Asha", clientName.get("firstName"));
+        assertEquals("Salum", clientName.get("middleName"));
+        assertEquals("Hassan", clientName.get("lastName"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldLeaveTargetIdentityFieldsAsPlaintextWhenEncryptionFlagIsMissing() {
+        IntegrationDataMapper missingFlagMapper = new IntegrationDataMapper(null, TEST_SECRET_KEY);
+
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withIdentificationDocuments(
+                buildServiceRow("Single"),
+                "NAT123",
+                null,
+                null,
+                null
+        );
+
+        Map<String, Object> mapped = missingFlagMapper.mapServiceRow(serviceRow, List.of());
+        Map<String, Object> clientIdentification = (Map<String, Object>) mapped.get("clientIdentification");
+        Map<String, Object> clientName = (Map<String, Object>) mapped.get("clientName");
+
+        assertEquals("NIDA", clientIdentification.get("clientUniqueIdentifierType"));
+        assertEquals("NAT123", clientIdentification.get("clientUniqueIdentifierCode"));
+        assertEquals("Asha", clientName.get("firstName"));
+        assertEquals("Salum", clientName.get("middleName"));
+        assertEquals("Hassan", clientName.get("lastName"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void mapServiceRow_shouldPreserveNullAndBlankNameValuesWhenEncryptionEnabled() {
+        IntegrationDataMapper encryptedMapper = new IntegrationDataMapper("true", TEST_SECRET_KEY);
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withClientNames(
+                withIdentificationDocuments(buildServiceRow("Single"), "   ", "", null, null),
+                null,
+                "",
+                "   "
+        );
+
+        Map<String, Object> mapped = encryptedMapper.mapServiceRow(serviceRow, List.of());
+        assertTrue(mapped.get("clientIdentification") instanceof List<?>);
+
+        List<Object> clientIdentification = (List<Object>) mapped.get("clientIdentification");
+        assertTrue(clientIdentification.isEmpty());
+
+        Map<String, Object> clientName = (Map<String, Object>) mapped.get("clientName");
+        assertNull((String) clientName.get("firstName"));
+        assertEquals("", clientName.get("middleName"));
+        assertEquals("   ", clientName.get("lastName"));
+    }
+
+    @Test
+    void constructor_shouldFailFastWhenEncryptionEnabledAndSecretKeyIsMissingOrBlank() {
+        IllegalStateException missingSecretException = assertThrows(
+                IllegalStateException.class,
+                () -> new IntegrationDataMapper("true", null)
+        );
+        assertEquals("ENCRYPT_DATA is true but ENCRYPTION_SECRET_KEY is missing or blank.",
+                missingSecretException.getMessage());
+
+        IllegalStateException blankSecretException = assertThrows(
+                IllegalStateException.class,
+                () -> new IntegrationDataMapper("true", "   ")
+        );
+        assertEquals("ENCRYPT_DATA is true but ENCRYPTION_SECRET_KEY is missing or blank.",
+                blankSecretException.getMessage());
     }
 
     @SuppressWarnings("unchecked")
@@ -1045,6 +1173,61 @@ class IntegrationDataMapperTest {
                 serviceRow.firstName(),
                 serviceRow.middleName(),
                 serviceRow.lastName(),
+                serviceRow.phoneNumber(),
+                serviceRow.nationalId(),
+                serviceRow.voterId(),
+                serviceRow.driverLicense(),
+                serviceRow.passport(),
+                serviceRow.sex(),
+                serviceRow.birthDate(),
+                serviceRow.maritalStatus(),
+                serviceRow.pregnancyStatus(),
+                serviceRow.hfrCode(),
+                serviceRow.region(),
+                serviceRow.district(),
+                serviceRow.districtCouncil(),
+                serviceRow.ward(),
+                serviceRow.healthFacility(),
+                serviceRow.village(),
+                serviceRow.counsellorName()
+        );
+    }
+
+    private OpenSrpIntegrationRepository.ServiceRow withClientNames(
+            OpenSrpIntegrationRepository.ServiceRow serviceRow,
+            String firstName,
+            String middleName,
+            String lastName
+    ) {
+        return new OpenSrpIntegrationRepository.ServiceRow(
+                serviceRow.eventId(),
+                serviceRow.baseEntityId(),
+                serviceRow.htsVisitGroup(),
+                serviceRow.visitDate(),
+                serviceRow.htsVisitDate(),
+                serviceRow.dateCreated(),
+                serviceRow.providerId(),
+                serviceRow.htsTestingApproach(),
+                serviceRow.htsVisitType(),
+                serviceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                serviceRow.htsPreviousHivstClientType(),
+                serviceRow.htsPreviousHivstTestType(),
+                serviceRow.htsPreviousHivstTestResults(),
+                serviceRow.htsClientType(),
+                serviceRow.htsTestingPoint(),
+                serviceRow.htsTypeOfCounsellingProvided(),
+                serviceRow.htsClientsTbScreeningOutcome(),
+                serviceRow.htsHasPostTestCounsellingBeenProvided(),
+                serviceRow.htsHivResultsDisclosure(),
+                serviceRow.htsWereCondomsDistributed(),
+                serviceRow.htsNumberOfMaleCondomsProvided(),
+                serviceRow.htsNumberOfFemaleCondomsProvided(),
+                serviceRow.htsPreventiveServices(),
+                serviceRow.finalHivTestResult(),
+                serviceRow.uniqueId(),
+                firstName,
+                middleName,
+                lastName,
                 serviceRow.phoneNumber(),
                 serviceRow.nationalId(),
                 serviceRow.voterId(),
