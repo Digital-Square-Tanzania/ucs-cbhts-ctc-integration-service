@@ -225,6 +225,10 @@ Representative request body:
 }
 ```
 
+Notes:
+
+- Encrypted input fields in this payload are decrypted using the LTF/Index payload encryption key (`LTF_INDEX_PAYLOAD_ENCRYPTION_SECRET_KEY`).
+
 Success response (`200`):
 
 ```json
@@ -264,6 +268,10 @@ Representative request body:
   "ctc_number": "12345678"
 }
 ```
+
+Notes:
+
+- Encrypted input fields in this payload are decrypted using the LTF/Index payload encryption key (`LTF_INDEX_PAYLOAD_ENCRYPTION_SECRET_KEY`).
 
 Success response (`200`) has the same shape as `/send-ltf-missap-clients`.
 
@@ -402,16 +410,21 @@ set +a
 | `OPENSRP_SERVER_URL` | Fallback | None | Fallback OpenSRP base URL used when `OPENSRP_SERVER_EVENT_URL` is unset. |
 | `OPENSRP_SERVER_USERNAME` | No | None | Basic auth username used by verification and `/send-*` forwarding. |
 | `OPENSRP_SERVER_PASSWORD` | No | None | Basic auth password used by verification and `/send-*` forwarding. |
-| `INTEGRATION_SERVICE_SECRET_KEY` | Yes for `/send-*` endpoints | `secret-key` | Secret key used to decrypt inbound encrypted fields for CTC forwarding endpoints. |
+| `LTF_INDEX_PAYLOAD_ENCRYPTION_SECRET_KEY` | Yes for `/send-ltf-missap-clients` and `/send-index-contacts` | `secret-key` | LTF/Index payload encryption key (decrypt/encrypt flow key) used by `/send-ltf-missap-clients` and `/send-index-contacts`. |
 | `INTEGRATION_SERVICE_HOST` | No | `127.0.0.1` | HTTP bind host for this service. |
 | `INTEGRATION_SERVICE_PORT` | No | `8080` | HTTP bind port for this service. |
 | `INTEGRATION_SERVICE_ROUTES_ASK_TIMEOUT` | No | `60s` | Ask timeout used by actor-backed `/send-*` endpoints. |
-| `ENCRYPT_DATA` | No | `false` behavior | Enables identity/name encryption only when value is exactly `true` (case-insensitive). |
-| `ENCRYPTION_SECRET_KEY` | Conditionally | None | Required and non-blank when `ENCRYPT_DATA=true`. |
+| `ENCRYPT_DATA` | No | `false` behavior | CBHTS payload encryption toggle for selected `/integration/ctc2hts` client identity fields; encryption is enabled only when value is exactly `true` (case-insensitive). |
+| `CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY` | Conditionally | None | CBHTS payload encryption key used only when `ENCRYPT_DATA=true` (encrypts selected outbound `/integration/ctc2hts` identity fields). |
 
 ### Encryption Behavior
 
-When `ENCRYPT_DATA=true`, the mapper encrypts only these outbound fields:
+Two payload encryption keys are used for different flows:
+
+- `LTF_INDEX_PAYLOAD_ENCRYPTION_SECRET_KEY`: LTF/Index payload encryption key (decrypt/encrypt flow key) for `/send-ltf-missap-clients` and `/send-index-contacts`.
+- `CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY`: CBHTS payload encryption key used only when `ENCRYPT_DATA=true` (encrypts selected outbound `/integration/ctc2hts` identity fields).
+
+When `ENCRYPT_DATA=true`, the `/integration/ctc2hts` mapper encrypts only these outbound fields:
 
 - `clientUniqueIdentifierType`
 - `clientUniqueIdentifierCode`
@@ -422,7 +435,7 @@ When `ENCRYPT_DATA=true`, the mapper encrypts only these outbound fields:
 Implementation details:
 
 - Encryption uses `Utils.encryptDataNew(...)` (AES/CBC/PKCS5Padding, Base64 output with IV prepended).
-- If encryption is enabled and `ENCRYPTION_SECRET_KEY` is missing/blank, the service fails fast at startup.
+- If encryption is enabled and `CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY` is missing/blank, the service fails fast at startup.
 - `null`, empty, and whitespace-only values are preserved as-is (not transformed).
 
 ## Build, Test, and Run
@@ -484,7 +497,7 @@ docker run -d \
   -e OPENSRP_SERVER_EVENT_URL=http://host.docker.internal:8080/opensrp/rest/event/add \
   -e OPENSRP_SERVER_USERNAME=<opensrp_user> \
   -e OPENSRP_SERVER_PASSWORD=<opensrp_password> \
-  -e INTEGRATION_SERVICE_SECRET_KEY=<secret_key> \
+  -e LTF_INDEX_PAYLOAD_ENCRYPTION_SECRET_KEY=<secret_key> \
   ucs-cbhts-ctc-integration-service
 ```
 
@@ -552,7 +565,7 @@ These files drive code normalization and value translation for several output se
   - Check response `errors` array for per-item failure details.
 
 - Startup failure after enabling encryption:
-  - Ensure `ENCRYPTION_SECRET_KEY` is set and non-blank when `ENCRYPT_DATA=true`.
+  - Ensure `CBHTS_PAYLOAD_ENCRYPTION_SECRET_KEY` is set and non-blank when `ENCRYPT_DATA=true`.
 
 ### Logging
 
