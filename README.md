@@ -511,6 +511,19 @@ docker run -d \
   ucs-cbhts-ctc-integration-service
 ```
 
+### Run with env file (Linux)
+
+On Linux, add `--add-host=host.docker.internal:host-gateway` so `host.docker.internal` resolves from inside the container.
+
+```bash
+docker run -d \
+  --name ucs-cbhts-ctc-integration-service \
+  -p 127.0.0.1:9600:8080 \
+  --env-file .env \
+  --add-host=host.docker.internal:host-gateway \
+  ucs-cbhts-ctc-integration-service
+```
+
 ### Logs and lifecycle
 
 ```bash
