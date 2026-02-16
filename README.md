@@ -193,12 +193,14 @@ Success response:
 {
   "processedCount": 1,
   "successCount": 1,
+  "skippedCount": 0,
   "failureCount": 0,
   "errors": []
 }
 ```
 
 Partial failures are returned in the `errors` array with item index and message.
+Duplicate verification results (same `clientCode` + `visitId`) are skipped.
 
 ### 4) Send LTF/MISSAP Clients
 
@@ -546,6 +548,7 @@ Primary tables used:
 - `household`
 - `hivst_results`
 - `hivst_issue_kits`
+- `ctc_integration.received_verification_results_log`
 
 Reference SQL structures are available in:
 
