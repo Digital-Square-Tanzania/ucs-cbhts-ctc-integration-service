@@ -1,49 +1,90 @@
-# UCS-CBHTS-CTC INTEGRATION SERVICE
+# UCS-CBHTS-CTC Integration Service
 
-A service that exposes a production-ready integration endpoint for CTC to HTS data extraction from OpenSRP PostgreSQL tables.
+This service exposes integration APIs used to:
 
-## 1. Dev Requirements
+1. Extract and transform CBHTS/CTC OpenSRP data into the HTS integration payload shape.
+2. Receive HIV verification outcomes and forward them to OpenSRP as events.
 
- 1. Java 17
- 2. IntelliJ or Visual Studio Code
- 3. Gradle
+The service is built with Java 17, Akka HTTP, and Gradle.
 
-## 2. Run Locally
+## Table of Contents
 
-Set database environment variables (no hardcoded credentials):
+1. [Architecture](#architecture)
+2. [API Reference](#api-reference)
+3. [Configuration](#configuration)
+4. [Build, Test, and Run](#build-test-and-run)
+5. [Docker Deployment](#docker-deployment)
+6. [Data Dependencies](#data-dependencies)
+7. [Mapping and Transformation Assets](#mapping-and-transformation-assets)
+8. [Error Handling and Troubleshooting](#error-handling-and-troubleshooting)
 
-```bash
-export OPENSRP_DB_HOST=localhost
-export OPENSRP_DB_PORT=5432
-export OPENSRP_DB_NAME=opensrp
-export OPENSRP_DB_SCHEMA=public
-export OPENSRP_DB_USER=<db_user>
-export OPENSRP_DB_PASSWORD=<db_password>
+## Architecture
+
+### High-Level Flow
+
+```text
+Client
+  -> Akka HTTP Routes
+    -> Request Validation
+      -> Service Layer
+        -> PostgreSQL Repository (read)
+        -> Data Mapper (shape + normalize + optional encryption)
+        -> OpenSRP Event Sender (verification endpoint only)
+  <- JSON Response
 ```
 
-Or use a `.env` file:
+### Main Components
 
-```bash
-cp .env-sample .env
-set -a
-source .env
-set +a
+- `src/main/java/com/abt/UcsCbhtsCtsIntegrationServiceApp.java`
+  - Application entrypoint.
+  - Starts Akka HTTP server using `integration-service.service-host` and `integration-service.service-port`.
+
+- `src/main/java/com/abt/UcsCbhtsCtsIntegrationRoutes.java`
+  - Exposes:
+    - `GET /health`
+    - `POST /integration/ctc2hts`
+    - `POST /integration/verification-results`
+  - Converts validation failures to `400` and unexpected failures to `500`.
+
+- `src/main/java/com/abt/integration/service/OpenSrpIntegrationService.java`
+  - Handles `/integration/ctc2hts` requests.
+  - Orchestrates validation, DB reads, mapping, pagination metadata.
+
+- `src/main/java/com/abt/integration/service/OpenSrpVerificationResultsService.java`
+  - Handles `/integration/verification-results`.
+  - Validates input, resolves latest service metadata by client/hfr, builds OpenSRP events, forwards events.
+
+- `src/main/java/com/abt/integration/db/OpenSrpIntegrationRepository.java`
+  - Contains all SQL queries and DB row records.
+  - Reads from CBHTS-related OpenSRP tables and groups related records.
+
+- `src/main/java/com/abt/integration/mapping/IntegrationDataMapper.java`
+  - Maps DB rows to final payload sections.
+  - Applies reference mappings and aliases.
+  - Conditionally encrypts identity/name fields based on config.
+
+- `src/main/java/com/abt/integration/mapping/MappingReferenceCatalog.java`
+  - Loads integration code mappings from CSV and OpenSRP form JSON options.
+
+## API Reference
+
+### 1) Health Check
+
+`GET /health`
+
+Response:
+
+```json
+{
+  "status": "ok"
+}
 ```
 
-Then build and run:
+### 2) CTC to HTS Integration
 
-```bash
-  ./gradlew clean shadowJar
-  java -jar build/libs/ucs-ctc-integration-service-1.0.0.jar
-```
+`POST /integration/ctc2hts`
 
-## 3. Endpoint
-
-- `POST /integration/ctc2hts`
-- `POST /integration/verification-results`
-- `GET /health`
-
-Sample request body:
+Request body:
 
 ```json
 {
@@ -55,13 +96,130 @@ Sample request body:
 }
 ```
 
-The response shape follows `resources/sample_output.json`.
+Validation rules:
 
-Mapping references used by the service:
-- `resources/CTC2HTSVariables_Integration_mappings.csv`
-- `resources/reference_openrp_forms/`
+- `hfrCode` is required.
+- `startDate` is required.
+- `endDate` is required.
+- `startDate <= endDate`.
+- `pageIndex >= 1`.
+- `pageSize >= 1`.
 
-Example request:
+Notes:
+
+- Request timestamps are expected in epoch seconds.
+- Query logic also checks millisecond-stored records by comparing against `startDate * 1000` and `endDate * 1000`.
+
+Success response shape:
+
+```json
+{
+  "pageNumber": 1,
+  "pageSize": 100,
+  "totalRecords": 123,
+  "data": [
+    {
+      "htcApproach": "CBHTS",
+      "visitDate": "2026-01-14",
+      "counsellor": {},
+      "clientCode": "CLT123456",
+      "cellPhoneNumber": "2557...",
+      "clientIdentification": {},
+      "clientName": {},
+      "demographics": {},
+      "residence": {},
+      "clientClassification": {},
+      "testingHistory": {},
+      "currentTesting": {},
+      "selfTesting": [],
+      "reagentTesting": [],
+      "hivResultCode": "POSITIVE",
+      "preventionServices": {},
+      "referralAndOutcome": [],
+      "remarks": "Generated from cbhts_services event ...",
+      "createdAt": 1768262800
+    }
+  ]
+}
+```
+
+Full output example: `resources/sample_output.json`
+
+### 3) Verification Results Forwarding
+
+`POST /integration/verification-results`
+
+Request body:
+
+```json
+{
+  "hfrCode": "12123-1",
+  "data": [
+    {
+      "clientCode": "CLT123456",
+      "verificationDate": "2026-01-01",
+      "hivFinalVerificationResultCode": "POSITIVE",
+      "ctcId": "12-11-2132-133214",
+      "visitId": "B0452823-F078-4CAC-8746-4A11733E942A"
+    }
+  ]
+}
+```
+
+Validation rules:
+
+- `hfrCode` is required.
+- `data` must exist and be non-empty.
+- For each `data[i]`:
+  - `clientCode` is required.
+  - `verificationDate` is required and must be `yyyy-MM-dd`.
+  - `hivFinalVerificationResultCode` is required and must be one of:
+    - `POSITIVE`
+    - `NEGATIVE`
+    - `INCONCLUSIVE`
+  - `visitId` is required.
+- `ctcId` is optional.
+
+Success response:
+
+```json
+{
+  "processedCount": 1,
+  "successCount": 1,
+  "failureCount": 0,
+  "errors": []
+}
+```
+
+Partial failures are returned in the `errors` array with item index and message.
+
+### Error Responses
+
+Validation errors return HTTP `400`:
+
+```json
+{
+  "message": "Invalid request payload",
+  "details": [
+    "data[0].visitId is required"
+  ]
+}
+```
+
+Unhandled processing failures return HTTP `500`:
+
+```json
+{
+  "message": "Failed to process integration request",
+  "details": [
+    "..."
+  ]
+}
+```
+
+### Example cURL Commands
+
+CTC to HTS extraction:
 
 ```bash
 curl --request POST "http://127.0.0.1:8080/integration/ctc2hts" \
@@ -75,7 +233,7 @@ curl --request POST "http://127.0.0.1:8080/integration/ctc2hts" \
   }'
 ```
 
-Verification results request:
+Verification forwarding:
 
 ```bash
 curl --request POST "http://127.0.0.1:8080/integration/verification-results" \
@@ -94,20 +252,97 @@ curl --request POST "http://127.0.0.1:8080/integration/verification-results" \
   }'
 ```
 
-Set OpenSRP destination environment variables for verification event forwarding:
-- `OPENSRP_SERVER_EVENT_URL`
-- `OPENSRP_SERVER_USERNAME`
-- `OPENSRP_SERVER_PASSWORD`
+## Configuration
 
-## 4. Deployment via Docker
+Copy `.env-sample` and adjust values:
 
-Build the image:
+```bash
+cp .env-sample .env
+set -a
+source .env
+set +a
+```
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `OPENSRP_DB_URL` | No | None | Full JDBC URL. If set, host/port/name/schema values are not used to build URL. |
+| `OPENSRP_DB_HOST` | No | `localhost` | PostgreSQL host (used when `OPENSRP_DB_URL` is not set). |
+| `OPENSRP_DB_PORT` | No | `5432` | PostgreSQL port. |
+| `OPENSRP_DB_NAME` | No | `opensrp` | PostgreSQL database name. |
+| `OPENSRP_DB_SCHEMA` | No | `public` | PostgreSQL schema used in SQL queries. Must match `^[A-Za-z0-9_]+$`. |
+| `OPENSRP_DB_USER` | Usually | None | PostgreSQL username. |
+| `OPENSRP_DB_PASSWORD` | Usually | None | PostgreSQL password. |
+| `OPENSRP_DB_SSLMODE` | No | None | Optional SSL mode (`disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full`). |
+| `OPENSRP_SERVER_EVENT_URL` | Yes for verification endpoint | None | Destination URL for OpenSRP event posting. |
+| `OPENSRP_SERVER_URL` | Fallback | None | Fallback URL if `OPENSRP_SERVER_EVENT_URL` is unset. |
+| `OPENSRP_SERVER_USERNAME` | No | None | Basic auth username for event posting. |
+| `OPENSRP_SERVER_PASSWORD` | No | None | Basic auth password for event posting. |
+| `ENCRYPT_DATA` | No | `false` behavior | Enables identity/name encryption only when value is exactly `true` (case-insensitive). |
+| `ENCRYPTION_SECRET_KEY` | Conditionally | None | Required and non-blank when `ENCRYPT_DATA=true`. |
+
+### Encryption Behavior
+
+When `ENCRYPT_DATA=true`, the mapper encrypts only these outbound fields:
+
+- `clientUniqueIdentifierType`
+- `clientUniqueIdentifierCode`
+- `firstName`
+- `middleName`
+- `lastName`
+
+Implementation details:
+
+- Encryption uses `Utils.encryptDataNew(...)` (AES/CBC/PKCS5Padding, Base64 output with IV prepended).
+- If encryption is enabled and `ENCRYPTION_SECRET_KEY` is missing/blank, the service fails fast at startup.
+- `null`, empty, and whitespace-only values are preserved as-is (not transformed).
+
+## Build, Test, and Run
+
+### Prerequisites
+
+- Java 17
+- Gradle wrapper (`./gradlew`) or compatible Gradle runtime
+
+### Run tests
+
+```bash
+./gradlew test
+```
+
+### Build executable jar
+
+```bash
+./gradlew clean shadowJar
+```
+
+Generated artifact:
+
+`build/libs/ucs-ctc-integration-service-1.0.0.jar`
+
+### Run service
+
+```bash
+java -jar build/libs/ucs-ctc-integration-service-1.0.0.jar
+```
+
+Default bind address:
+
+- Host: `127.0.0.1`
+- Port: `8080`
+
+Configured in `src/main/resources/application.conf`.
+
+## Docker Deployment
+
+### Build image
 
 ```bash
 docker build -t ucs-cbhts-ctc-integration-service .
 ```
 
-Run container:
+### Run with explicit env values
 
 ```bash
 docker run -d \
@@ -119,10 +354,11 @@ docker run -d \
   -e OPENSRP_DB_SCHEMA=public \
   -e OPENSRP_DB_USER=<db_user> \
   -e OPENSRP_DB_PASSWORD=<db_password> \
+  -e OPENSRP_SERVER_EVENT_URL=http://host.docker.internal:8080/opensrp/rest/event/add \
   ucs-cbhts-ctc-integration-service
 ```
 
-Or use `.env` directly with Docker:
+### Run with env file
 
 ```bash
 docker run -d \
@@ -132,29 +368,70 @@ docker run -d \
   ucs-cbhts-ctc-integration-service
 ```
 
-Optional:
-- Use `OPENSRP_DB_URL` instead of host/port/name/schema.
-- Use `OPENSRP_DB_SSLMODE` if SSL is required.
-
-View logs:
+### Logs and lifecycle
 
 ```bash
 docker logs -f ucs-cbhts-ctc-integration-service
-```
-
-Stop and remove container:
-
-```bash
 docker rm -f ucs-cbhts-ctc-integration-service
 ```
 
-## License
+## Data Dependencies
 
-ISC
+This service reads OpenSRP PostgreSQL data from the configured schema.
 
-## Author
+Primary tables used:
 
-Ilakoze Jumanne
+- `cbhts_services`
+- `cbhts_tests`
+- `cbhts_enrollment`
+- `client`
+- `team_members`
+- `tanzania_locations`
+- `household`
+- `hivst_results`
+- `hivst_issue_kits`
 
-## Version
-1.0.0
+Reference SQL structures are available in:
+
+- `resources/tables structures/`
+
+## Mapping and Transformation Assets
+
+Mapping references used by `MappingReferenceCatalog`:
+
+- `resources/CTC2HTSVariables_Integration_mappings.csv`
+- `resources/reference_openrp_forms/*.json`
+
+These files drive code normalization and value translation for several output sections.
+
+## Error Handling and Troubleshooting
+
+### Common issues
+
+- Database connection failure:
+  - Verify DB host/port/credentials/schema and network reachability.
+  - Confirm `OPENSRP_DB_SCHEMA` value is valid (alphanumeric + underscore only).
+
+- Empty extraction response:
+  - Confirm `hfrCode` exists in `tanzania_locations`.
+  - Confirm date range and unit (seconds in request) align with stored event timestamps.
+
+- Verification forwarding failures:
+  - Confirm `OPENSRP_SERVER_EVENT_URL`/`OPENSRP_SERVER_URL`.
+  - Verify auth credentials if destination requires Basic auth.
+  - Check response `errors` array for per-item failure details.
+
+- Startup failure after enabling encryption:
+  - Ensure `ENCRYPTION_SECRET_KEY` is set and non-blank when `ENCRYPT_DATA=true`.
+
+### Logging
+
+- Logback config: `src/main/resources/logback.xml`
+- Default root log level: `INFO`
+- Logs are written to stdout.
+
+## Additional Notes
+
+- JSON payloads ignore unknown properties during deserialization.
+- Pagination is request-driven via `pageIndex` and `pageSize`.
+- CTC->HTS output uses deterministic section keys, while internal mapping logic normalizes source variants and aliases.
