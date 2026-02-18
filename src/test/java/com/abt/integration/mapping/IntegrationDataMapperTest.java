@@ -536,10 +536,10 @@ class IntegrationDataMapperTest {
         );
 
         Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
-        assertTrue(mapped.get("clientIdentification") instanceof List<?>);
-
-        List<Object> clientIdentification = (List<Object>) mapped.get("clientIdentification");
-        assertTrue(clientIdentification.isEmpty());
+        assertTrue(mapped.get("clientIdentification") instanceof Map<?, ?>);
+        Map<String, Object> clientIdentification = (Map<String, Object>) mapped.get("clientIdentification");
+        assertNull(clientIdentification.get("clientUniqueIdentifierType"));
+        assertNull(clientIdentification.get("clientUniqueIdentifierCode"));
     }
 
     @SuppressWarnings("unchecked")
@@ -638,10 +638,10 @@ class IntegrationDataMapperTest {
         );
 
         Map<String, Object> mapped = encryptedMapper.mapServiceRow(serviceRow, List.of());
-        assertTrue(mapped.get("clientIdentification") instanceof List<?>);
-
-        List<Object> clientIdentification = (List<Object>) mapped.get("clientIdentification");
-        assertTrue(clientIdentification.isEmpty());
+        assertTrue(mapped.get("clientIdentification") instanceof Map<?, ?>);
+        Map<String, Object> clientIdentification = (Map<String, Object>) mapped.get("clientIdentification");
+        assertNull(clientIdentification.get("clientUniqueIdentifierType"));
+        assertNull(clientIdentification.get("clientUniqueIdentifierCode"));
 
         Map<String, Object> clientName = (Map<String, Object>) mapped.get("clientName");
         assertNull((String) clientName.get("firstName"));
