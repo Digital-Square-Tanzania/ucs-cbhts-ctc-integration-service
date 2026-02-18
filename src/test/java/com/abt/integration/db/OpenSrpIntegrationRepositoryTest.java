@@ -188,6 +188,56 @@ class OpenSrpIntegrationRepositoryTest {
     }
 
     @Test
+    void countServices_shouldMapSecondInputToInclusiveMillisecondRange() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        IntegrationRequest request = new IntegrationRequest();
+        request.setHfrCode("124899-6");
+        request.setStartDate(1768262400L);
+        request.setEndDate(1768262800L);
+
+        when(connection.prepareStatement(org.mockito.ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(false);
+
+        repository.countServices(connection, request);
+
+        verify(statement).setLong(2, 1768262400L);
+        verify(statement).setLong(3, 1768262800L);
+        verify(statement).setLong(4, 1768262400000L);
+        verify(statement).setLong(5, 1768262800999L);
+    }
+
+    @Test
+    void countServices_shouldPreserveMillisecondInputRange() throws SQLException {
+        OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+
+        IntegrationRequest request = new IntegrationRequest();
+        request.setHfrCode("124899-6");
+        request.setStartDate(1768262400123L);
+        request.setEndDate(1768262800456L);
+
+        when(connection.prepareStatement(org.mockito.ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(false);
+
+        repository.countServices(connection, request);
+
+        verify(statement).setLong(2, 1768262400L);
+        verify(statement).setLong(3, 1768262800L);
+        verify(statement).setLong(4, 1768262400123L);
+        verify(statement).setLong(5, 1768262800456L);
+    }
+
+    @Test
     void findHivstTestByBaseEntity_shouldUseDynamicKitJoinAndCaseColumns() throws SQLException {
         OpenSrpIntegrationRepository repository = new OpenSrpIntegrationRepository("public");
 
