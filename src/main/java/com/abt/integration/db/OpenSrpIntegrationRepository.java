@@ -19,6 +19,8 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 public class OpenSrpIntegrationRepository {
+    private static final long EPOCH_MILLIS_THRESHOLD = 10_000_000_000L;
+    private static final long MILLIS_PER_SECOND = 1000L;
 
     private static final String VERIFICATION_LOG_TABLE = "ctc_integration.received_verification_results_log";
     private static final String CREATE_VERIFICATION_LOG_SCHEMA_SQL = "CREATE SCHEMA IF NOT EXISTS ctc_integration";
@@ -51,16 +53,13 @@ public class OpenSrpIntegrationRepository {
                 "AND ((s.date_created BETWEEN ? AND ?) OR (s.date_created BETWEEN ? AND ?))";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            long startSec = request.getStartDate();
-            long endSec = request.getEndDate();
-            long startMs = secondsToMillis(startSec);
-            long endMs = secondsToMillis(endSec);
+            DateCreatedTimeRange range = toDateCreatedRange(request.getStartDate(), request.getEndDate());
 
             statement.setString(1, request.getHfrCode());
-            statement.setLong(2, startSec);
-            statement.setLong(3, endSec);
-            statement.setLong(4, startMs);
-            statement.setLong(5, endMs);
+            statement.setLong(2, range.startSec());
+            statement.setLong(3, range.endSec());
+            statement.setLong(4, range.startMs());
+            statement.setLong(5, range.endMs());
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -173,17 +172,14 @@ public class OpenSrpIntegrationRepository {
                 "LIMIT ? OFFSET ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            long startSec = request.getStartDate();
-            long endSec = request.getEndDate();
-            long startMs = secondsToMillis(startSec);
-            long endMs = secondsToMillis(endSec);
+            DateCreatedTimeRange range = toDateCreatedRange(request.getStartDate(), request.getEndDate());
             int offset = (request.getPageIndex() - 1) * request.getPageSize();
 
             statement.setString(1, request.getHfrCode());
-            statement.setLong(2, startSec);
-            statement.setLong(3, endSec);
-            statement.setLong(4, startMs);
-            statement.setLong(5, endMs);
+            statement.setLong(2, range.startSec());
+            statement.setLong(3, range.endSec());
+            statement.setLong(4, range.startMs());
+            statement.setLong(5, range.endMs());
             statement.setInt(6, request.getPageSize());
             statement.setInt(7, offset);
 
@@ -287,13 +283,12 @@ public class OpenSrpIntegrationRepository {
 
         try (PreparedStatement statement = connection.prepareStatement(query.toString())) {
             int index = 1;
-            long startMs = secondsToMillis(startDate);
-            long endMs = secondsToMillis(endDate);
+            DateCreatedTimeRange range = toDateCreatedRange(startDate, endDate);
 
-            statement.setLong(index++, startDate);
-            statement.setLong(index++, endDate);
-            statement.setLong(index++, startMs);
-            statement.setLong(index++, endMs);
+            statement.setLong(index++, range.startSec());
+            statement.setLong(index++, range.endSec());
+            statement.setLong(index++, range.startMs());
+            statement.setLong(index++, range.endMs());
 
             for (String visitGroup : visitGroups) {
                 statement.setString(index++, visitGroup);
@@ -473,8 +468,32 @@ public class OpenSrpIntegrationRepository {
         return joiner.toString();
     }
 
+    private static DateCreatedTimeRange toDateCreatedRange(long startDate, long endDate) {
+        boolean startIsMillis = isEpochMillis(startDate);
+        boolean endIsMillis = isEpochMillis(endDate);
+
+        long startSec = startIsMillis ? millisToSeconds(startDate) : startDate;
+        long endSec = endIsMillis ? millisToSeconds(endDate) : endDate;
+        long startMs = startIsMillis ? startDate : secondsToMillis(startDate);
+        long endMs = endIsMillis ? endDate : inclusiveSecondsToMillisEnd(endDate);
+
+        return new DateCreatedTimeRange(startSec, endSec, startMs, endMs);
+    }
+
+    private static boolean isEpochMillis(long timestamp) {
+        return timestamp <= -EPOCH_MILLIS_THRESHOLD || timestamp >= EPOCH_MILLIS_THRESHOLD;
+    }
+
+    private static long millisToSeconds(long millis) {
+        return Math.floorDiv(millis, MILLIS_PER_SECOND);
+    }
+
     private static long secondsToMillis(long seconds) {
-        return Math.multiplyExact(seconds, 1000L);
+        return Math.multiplyExact(seconds, MILLIS_PER_SECOND);
+    }
+
+    private static long inclusiveSecondsToMillisEnd(long seconds) {
+        return Math.addExact(secondsToMillis(seconds), MILLIS_PER_SECOND - 1L);
     }
 
     private static Integer getNullableInteger(ResultSet resultSet, String column) throws SQLException {
@@ -514,6 +533,14 @@ public class OpenSrpIntegrationRepository {
         }
 
         return true;
+    }
+
+    private record DateCreatedTimeRange(
+            long startSec,
+            long endSec,
+            long startMs,
+            long endMs
+    ) {
     }
 
     public record VerificationServiceMetadataRow(
