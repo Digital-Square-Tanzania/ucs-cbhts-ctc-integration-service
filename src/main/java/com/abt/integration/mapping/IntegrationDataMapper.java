@@ -238,7 +238,7 @@ public class IntegrationDataMapper {
         return normalized;
     }
 
-    private Object mapClientIdentification(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
+    private Map<String, Object> mapClientIdentification(OpenSrpIntegrationRepository.ServiceRow serviceRow) {
         if (hasText(serviceRow.nationalId())) {
             return buildClientIdentification("NIDA", serviceRow.nationalId());
         }
@@ -252,7 +252,7 @@ public class IntegrationDataMapper {
             return buildClientIdentification("PASSPORT", serviceRow.passport());
         }
 
-        return List.of();
+        return buildClientIdentification(null, null);
     }
 
     private Map<String, Object> buildClientIdentification(String idType, String idValue) {
