@@ -213,7 +213,7 @@ public class IntegrationDataMapper {
         item.put("preventionServices", mapPreventionServices(serviceRow));
         item.put("referralAndOutcome", mapReferralAndOutcome(serviceRow, hasReactiveUnigoldTest(reagentTesting)));
         item.put("remarks", "Generated from cbhts_services event " + serviceRow.eventId());
-        item.put("createdAt", toEpochSeconds(serviceRow.dateCreated()));
+        item.put("createdAt", toEpochMilliseconds(serviceRow.dateCreated()));
 
         return item;
     }
@@ -716,6 +716,13 @@ public class IntegrationDataMapper {
     private long toEpochSeconds(long rawTimestamp) {
         if (Math.abs(rawTimestamp) > 9_999_999_999L) {
             return rawTimestamp / 1000L;
+        }
+        return rawTimestamp;
+    }
+
+    private long toEpochMilliseconds(long rawTimestamp) {
+        if (Math.abs(rawTimestamp) <= 9_999_999_999L) {
+            return rawTimestamp * 1000L;
         }
         return rawTimestamp;
     }
