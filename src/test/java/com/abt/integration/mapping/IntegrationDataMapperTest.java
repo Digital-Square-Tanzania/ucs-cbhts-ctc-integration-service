@@ -114,6 +114,7 @@ class IntegrationDataMapperTest {
 
         assertEquals("CBHTS", mapped.get("htcApproach"));
         assertEquals("2025-12-20", mapped.get("visitDate"));
+        assertEquals(1768262800000L, mapped.get("createdAt"));
         Map<String, Object> counsellor = (Map<String, Object>) mapped.get("counsellor");
         assertEquals("provider-1", counsellor.get("counsellorID"));
         assertEquals("John Doe", counsellor.get("counsellorName"));
@@ -164,6 +165,15 @@ class IntegrationDataMapperTest {
         assertEquals(1, referralAndOutcome.size());
         assertEquals("PREP_SERVICE", referralAndOutcome.get(0).get("referredToCode"));
         assertEquals("13211-1", referralAndOutcome.get(0).get("toFacility"));
+    }
+
+    @Test
+    void mapServiceRow_shouldConvertSecondBasedCreatedAtToMilliseconds() {
+        OpenSrpIntegrationRepository.ServiceRow serviceRow = withDateCreated(buildServiceRow("Single"), 1768262800L);
+
+        Map<String, Object> mapped = mapper.mapServiceRow(serviceRow, List.of());
+
+        assertEquals(1768262800000L, mapped.get("createdAt"));
     }
 
     @SuppressWarnings("unchecked")
@@ -1183,6 +1193,59 @@ class IntegrationDataMapperTest {
                 visitDate,
                 serviceRow.htsVisitDate(),
                 serviceRow.dateCreated(),
+                serviceRow.providerId(),
+                serviceRow.htsTestingApproach(),
+                serviceRow.htsVisitType(),
+                serviceRow.htsHasTheClientRecentlyTestedWithHivst(),
+                serviceRow.htsPreviousHivstClientType(),
+                serviceRow.htsPreviousHivstTestType(),
+                serviceRow.htsPreviousHivstTestResults(),
+                serviceRow.htsClientType(),
+                serviceRow.htsTestingPoint(),
+                serviceRow.htsTypeOfCounsellingProvided(),
+                serviceRow.htsClientsTbScreeningOutcome(),
+                serviceRow.htsHasPostTestCounsellingBeenProvided(),
+                serviceRow.htsHivResultsDisclosure(),
+                serviceRow.htsWereCondomsDistributed(),
+                serviceRow.htsNumberOfMaleCondomsProvided(),
+                serviceRow.htsNumberOfFemaleCondomsProvided(),
+                serviceRow.htsPreventiveServices(),
+                serviceRow.finalHivTestResult(),
+                serviceRow.uniqueId(),
+                serviceRow.firstName(),
+                serviceRow.middleName(),
+                serviceRow.lastName(),
+                serviceRow.phoneNumber(),
+                serviceRow.nationalId(),
+                serviceRow.voterId(),
+                serviceRow.driverLicense(),
+                serviceRow.passport(),
+                serviceRow.sex(),
+                serviceRow.birthDate(),
+                serviceRow.maritalStatus(),
+                serviceRow.pregnancyStatus(),
+                serviceRow.hfrCode(),
+                serviceRow.region(),
+                serviceRow.district(),
+                serviceRow.districtCouncil(),
+                serviceRow.ward(),
+                serviceRow.healthFacility(),
+                serviceRow.village(),
+                serviceRow.counsellorName()
+        );
+    }
+
+    private OpenSrpIntegrationRepository.ServiceRow withDateCreated(
+            OpenSrpIntegrationRepository.ServiceRow serviceRow,
+            long dateCreated
+    ) {
+        return new OpenSrpIntegrationRepository.ServiceRow(
+                serviceRow.eventId(),
+                serviceRow.baseEntityId(),
+                serviceRow.htsVisitGroup(),
+                serviceRow.visitDate(),
+                serviceRow.htsVisitDate(),
+                dateCreated,
                 serviceRow.providerId(),
                 serviceRow.htsTestingApproach(),
                 serviceRow.htsVisitType(),

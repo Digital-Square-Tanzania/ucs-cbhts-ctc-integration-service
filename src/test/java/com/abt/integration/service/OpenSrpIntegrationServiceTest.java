@@ -130,6 +130,7 @@ class OpenSrpIntegrationServiceTest {
         List<Map<String, Object>> data = (List<Map<String, Object>>) response.get("data");
         assertEquals(1, data.size());
         assertEquals("CBHTS", data.get(0).get("htcApproach"));
+        assertEquals(1768262800000L, data.get(0).get("createdAt"));
         assertEquals("POSITIVE", data.get(0).get("hivResultCode"));
         Map<String, Object> clientClassification = (Map<String, Object>) data.get(0).get("clientClassification");
         assertEquals(true, clientClassification.get("eligibleForTesting"));
