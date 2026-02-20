@@ -144,7 +144,7 @@ Success response shape:
       "preventionServices": {},
       "referralAndOutcome": [],
       "remarks": "Generated from cbhts_services event ...",
-      "createdAt": 1768262800
+      "createdAt": 1768262800000
     }
   ]
 }
