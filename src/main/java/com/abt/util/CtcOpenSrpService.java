@@ -1,7 +1,16 @@
 package com.abt.util;
 
 
-import com.abt.domain.*;
+import com.abt.domain.Address;
+import com.abt.domain.BaseRequest;
+import com.abt.domain.Client;
+import com.abt.domain.ClientEvents;
+import com.abt.domain.Event;
+import com.abt.domain.IndexContactRequest;
+import com.abt.domain.LtfClientRequest;
+import com.abt.domain.Obs;
+import com.abt.domain.Response;
+import com.abt.domain.Task;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -21,7 +30,16 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static com.abt.UcsCbhtsCtsIntegrationServiceApp.SECRETE_KEY;
 import static com.abt.util.Utils.decryptDataNew;
@@ -37,8 +55,10 @@ public class CtcOpenSrpService {
     private static final int clientApplicationVersion = 2;
     private static final String EVENT_ADD_PATH = "/opensrp/rest/event/add";
     private static final String TASK_CREATE_PATH = "/opensrp/rest/task";
-    private static final String UNIQUE_IDS_PATH_PREFIX = "/opensrp/uniqueids/get?source=2&numberToGenerate=";
-    private static final String USE_LTF_EVENTS_VERSION_2_ENV_KEY = "USE_LTF_EVENTS_VERSION_2";
+    private static final String UNIQUE_IDS_PATH_PREFIX = "/opensrp/uniqueids" +
+            "/get?source=2&numberToGenerate=";
+    private static final String USE_LTF_EVENTS_VERSION_2_ENV_KEY =
+            "USE_LTF_EVENTS_VERSION_2";
     private static final SimpleDateFormat inputFormat = new SimpleDateFormat(
             "yyyy-MM-dd");
 
@@ -48,7 +68,8 @@ public class CtcOpenSrpService {
 
     private static Gson gson =
             new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss" +
-                    ".SSSZ").registerTypeAdapter(org.joda.time.DateTime.class, new DateTimeTypeConverter()).create();
+                    ".SSSZ").registerTypeAdapter(org.joda.time.DateTime.class
+                    , new DateTimeTypeConverter()).create();
 
 
     // Static block to initialize the map
@@ -105,7 +126,8 @@ public class CtcOpenSrpService {
     private static Obs getRecGuidOb(BaseRequest baseRequest) {
         return new Obs("concept", "rec_guid",
                 "rec_guid", "",
-                Arrays.asList(new Object[]{baseRequest.getRecGuid()}), null, null, "rec_guid");
+                Arrays.asList(new Object[]{baseRequest.getRecGuid()}), null,
+                null, "rec_guid");
     }
 
 
@@ -117,7 +139,8 @@ public class CtcOpenSrpService {
      */
     public static Client getClientEvent(IndexContactRequest indexContacts) {
         Client familyClient = new Client(UUID.randomUUID().toString());
-        familyClient.setFirstName(decryptDataNew(indexContacts.getLastName(), SECRETE_KEY, null));
+        familyClient.setFirstName(decryptDataNew(indexContacts.getLastName(),
+                SECRETE_KEY, null));
         familyClient.setLastName("Family");
         familyClient.setBirthdate(new Date(0));
         familyClient.setBirthdateApprox(false);
@@ -211,7 +234,8 @@ public class CtcOpenSrpService {
             ctcClient.setMiddleName("");
         }
 
-        ctcClient.setLastName(decryptDataNew(indexContacts.getLastName(), SECRETE_KEY, null));
+        ctcClient.setLastName(decryptDataNew(indexContacts.getLastName(),
+                SECRETE_KEY, null));
         ctcClient.setGender(indexContacts.getSex().equalsIgnoreCase("M") ?
                 "Male" : "Female");
 
@@ -354,7 +378,8 @@ public class CtcOpenSrpService {
                 Arrays.asList(new Object[]{String.valueOf(Calendar.getInstance().getTimeInMillis())}), null, null, "last_interacted_with"));
 
         familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
-                "surname", "", Arrays.asList(new Object[]{decryptDataNew(client.getLastName(), SECRETE_KEY, null)}), null,
+                "surname", "",
+                Arrays.asList(new Object[]{decryptDataNew(client.getLastName(), SECRETE_KEY, null)}), null,
                 null, "surname"));
 
         familyMemberRegistrationEvent.addObs(new Obs("concept", "text",
@@ -414,7 +439,8 @@ public class CtcOpenSrpService {
                                                          LtfClientRequest ltfClientRequest) {
         Event familyMemberRegistrationEvent = new Event();
         familyMemberRegistrationEvent.setBaseEntityId(client.getBaseEntityId());
-        familyMemberRegistrationEvent.setEventType("Family Member Registration");
+        familyMemberRegistrationEvent.setEventType("Family Member " +
+                "Registration");
         familyMemberRegistrationEvent.setEntityType("ec_independent_client");
         familyMemberRegistrationEvent.addObs(new Obs("formsubmissionField",
                 "text", "id_avail", "", Arrays.asList(new Object[]{"None"}),
@@ -645,7 +671,7 @@ public class CtcOpenSrpService {
      * @return LTF Event.
      */
     public static Event getLtfEventVersion2(Client client,
-                                    LtfClientRequest ltfClientRequest) {
+                                            LtfClientRequest ltfClientRequest) {
         Event ltfEvent = new Event();
         ltfEvent.setBaseEntityId(client.getBaseEntityId());
         ltfEvent.setEventType("LTF Referral Registration");
@@ -677,11 +703,13 @@ public class CtcOpenSrpService {
 
     static boolean isLtfEventVersion2Enabled() {
         return Boolean.parseBoolean(
-                EnvConfig.getOrDefault(USE_LTF_EVENTS_VERSION_2_ENV_KEY, "false")
+                EnvConfig.getOrDefault(USE_LTF_EVENTS_VERSION_2_ENV_KEY,
+                        "false")
         );
     }
 
-    static Event resolveLtfEvent(Client client, LtfClientRequest ltfClientRequest) {
+    static Event resolveLtfEvent(Client client,
+                                 LtfClientRequest ltfClientRequest) {
         if (isLtfEventVersion2Enabled()) {
             return getLtfEventVersion2(client, ltfClientRequest);
         }
@@ -795,8 +823,9 @@ public class CtcOpenSrpService {
      */
     public static String generateLtfEvent(LtfClientRequest ltfRequest
             , String mUrl, String username, String password) {
-
-        if (ltfRequest.getBaseEntityId() == null) {
+        boolean hasBaseEntityId =
+                StringUtils.isNotBlank(ltfRequest.getBaseEntityId());
+        if (!hasBaseEntityId) {
             try {
                 JSONArray identifiers = fetchOpenMRSIds(mUrl, username,
                         password,
@@ -853,10 +882,12 @@ public class CtcOpenSrpService {
         //Generate LTF/MISSAP event
         Event ltfEvent = resolveLtfEvent(ltfClient, ltfRequest);
 
-        clients.add(familyClient);
-        clients.add(ltfClient);
-        events.add(familyRegistrationEvent);
-        events.add(familyMemberRegistrationEvent);
+        if (!hasBaseEntityId) {
+            clients.add(familyClient);
+            clients.add(ltfClient);
+            events.add(familyRegistrationEvent);
+            events.add(familyMemberRegistrationEvent);
+        }
         events.add(ltfEvent);
 
 
@@ -866,7 +897,8 @@ public class CtcOpenSrpService {
         clientEvents.setNoOfEvents(events.size());
 
         if (shouldGenerateAndSendLtfTask()) {
-            Task task = Utils.generateTask(ltfRequest, ltfEvent.getFormSubmissionId());
+            Task task = Utils.generateTask(ltfRequest,
+                    ltfEvent.getFormSubmissionId());
             sendDataToDestination(
                     gson.toJson(task),
                     taskCreateUrl(mUrl),
@@ -1035,7 +1067,8 @@ public class CtcOpenSrpService {
     private static String buildUrl(String baseUrl, String path) {
         String normalizedBaseUrl = baseUrl == null ? "" : baseUrl.trim();
         while (normalizedBaseUrl.endsWith("/")) {
-            normalizedBaseUrl = normalizedBaseUrl.substring(0, normalizedBaseUrl.length() - 1);
+            normalizedBaseUrl = normalizedBaseUrl.substring(0,
+                    normalizedBaseUrl.length() - 1);
         }
 
         String normalizedPath = path == null ? "" : path.trim();

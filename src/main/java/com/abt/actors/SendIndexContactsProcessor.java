@@ -3,6 +3,7 @@ package com.abt.actors;
 import com.abt.domain.IndexContactRequest;
 import com.abt.domain.Response;
 import com.abt.util.CtcOpenSrpService;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,8 @@ public class SendIndexContactsProcessor {
             LoggerFactory.getLogger(SendIndexContactsProcessor.class);
 
     public Response sendIndexContacts(IndexContactRequest indexContactRequest,
-                                    String url, String username,
-                                    String password) {
+                                      String url, String username,
+                                      String password) {
         String events;
         try {
             events =
@@ -23,9 +24,10 @@ public class SendIndexContactsProcessor {
 
             assert events != null;
             JSONObject eventsObject = new JSONObject(events);
-            return sendDataToDestination(events, CtcOpenSrpService.eventAddUrl(url), username, password,
-                    eventsObject.getJSONArray("clients").getJSONObject(1).getString("baseEntityId"),
-                    eventsObject.getJSONArray("clients").getJSONObject(1).getJSONObject("identifiers").getString("opensrp_id"));
+            return sendDataToDestination(events,
+                    CtcOpenSrpService.eventAddUrl(url), username, password,
+                    StringUtils.isNotBlank(indexContactRequest.getBaseEntityId()) ? indexContactRequest.getBaseEntityId() : eventsObject.getJSONArray("clients").getJSONObject(1).getString("baseEntityId"),
+                    StringUtils.isNotBlank(indexContactRequest.getUniqueId()) ? indexContactRequest.getUniqueId() : eventsObject.getJSONArray("clients").getJSONObject(1).getJSONObject("identifiers").getString("opensrp_id"));
         } catch (Exception e) {
             log.error(e.getMessage());
             Response response = new Response();
