@@ -38,6 +38,7 @@ public class CtcOpenSrpService {
     private static final String EVENT_ADD_PATH = "/opensrp/rest/event/add";
     private static final String TASK_CREATE_PATH = "/opensrp/rest/task";
     private static final String UNIQUE_IDS_PATH_PREFIX = "/opensrp/uniqueids/get?source=2&numberToGenerate=";
+    private static final String USE_LTF_EVENTS_VERSION_2_ENV_KEY = "USE_LTF_EVENTS_VERSION_2";
     private static final SimpleDateFormat inputFormat = new SimpleDateFormat(
             "yyyy-MM-dd");
 
@@ -636,6 +637,61 @@ public class CtcOpenSrpService {
         return ltfEvent;
     }
 
+    /**
+     * Creates an LTF followup Event for a given Client
+     *
+     * @param client           The Client object.
+     * @param ltfClientRequest The LtfClientRequest object.
+     * @return LTF Event.
+     */
+    public static Event getLtfEventVersion2(Client client,
+                                    LtfClientRequest ltfClientRequest) {
+        Event ltfEvent = new Event();
+        ltfEvent.setBaseEntityId(client.getBaseEntityId());
+        ltfEvent.setEventType("LTF Referral Registration");
+        ltfEvent.setEntityType("ec_referral");
+
+        ltfEvent.addObs(new Obs("concept", "text",
+                "on_art", "",
+                Arrays.asList(new Object[]{"yes"}), null, null, "on_art"));
+
+        ltfEvent.addObs(new Obs("concept", "text", "chw_referral_hf", "",
+                Arrays.asList(new Object[]{ltfClientRequest.getLocationId()}),
+                null, null, "chw_referral_hf"));
+
+        ltfEvent.addObs(new Obs("concept", "text", "chw_referral_service", "",
+                Arrays.asList(new Object[]{"LTFU"}),
+                null, null, "chw_referral_service"));
+
+        ltfEvent.addObs(new Obs("concept", "text",
+                "problem", "",
+                Arrays.asList(new Object[]{"CTC"}), null, null, "problem"));
+
+        ltfEvent.addObs(new Obs("concept", "text",
+                "last_appointment_date", "",
+                Arrays.asList(new Object[]{ltfClientRequest.getLastAppointmentDate()}), null, null, "last_appointment_date"));
+
+        setMetaData(ltfEvent, ltfClientRequest);
+        return ltfEvent;
+    }
+
+    static boolean isLtfEventVersion2Enabled() {
+        return Boolean.parseBoolean(
+                EnvConfig.getOrDefault(USE_LTF_EVENTS_VERSION_2_ENV_KEY, "false")
+        );
+    }
+
+    static Event resolveLtfEvent(Client client, LtfClientRequest ltfClientRequest) {
+        if (isLtfEventVersion2Enabled()) {
+            return getLtfEventVersion2(client, ltfClientRequest);
+        }
+        return getLtfEvent(client, ltfClientRequest);
+    }
+
+    static boolean shouldGenerateAndSendLtfTask() {
+        return !isLtfEventVersion2Enabled();
+    }
+
 
     /**
      * Generates Client events for a list of CTCPatients.
@@ -795,7 +851,7 @@ public class CtcOpenSrpService {
                         ltfRequest);
 
         //Generate LTF/MISSAP event
-        Event ltfEvent = getLtfEvent(ltfClient, ltfRequest);
+        Event ltfEvent = resolveLtfEvent(ltfClient, ltfRequest);
 
         clients.add(familyClient);
         clients.add(ltfClient);
@@ -809,15 +865,17 @@ public class CtcOpenSrpService {
         clientEvents.setEvents(events);
         clientEvents.setNoOfEvents(events.size());
 
-        Task task = Utils.generateTask(ltfRequest, ltfEvent.getFormSubmissionId());
-        sendDataToDestination(
-                gson.toJson(task),
-                taskCreateUrl(mUrl),
-                username,
-                password,
-                ltfRequest.getBaseEntityId(),
-                ltfRequest.getUniqueId()
-        );
+        if (shouldGenerateAndSendLtfTask()) {
+            Task task = Utils.generateTask(ltfRequest, ltfEvent.getFormSubmissionId());
+            sendDataToDestination(
+                    gson.toJson(task),
+                    taskCreateUrl(mUrl),
+                    username,
+                    password,
+                    ltfRequest.getBaseEntityId(),
+                    ltfRequest.getUniqueId()
+            );
+        }
 
         return gson.toJson(clientEvents);
 
